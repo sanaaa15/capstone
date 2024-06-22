@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import React, { useState } from 'react';
 import CustomButton from '../components/CustomButton';
-
+import Image from 'next/image';
 function Register() {
   const [isLogin, setIsLogin] = useState(false);
 
@@ -67,22 +67,24 @@ function Register() {
             />
           </div>
           <div className="flex items-center justify-center">
-            <CustomButton>
-              Register
-            </CustomButton>
+          <button className='px-8 py-2  rounded-full font-bold bg-blue-800 text-white focus:outline-none focus:shadow-outline'>
+                                Register
+                            </button>
           </div>
         </div>
       </div>
-      <div className="relative w-full lg:w-1/3 overflow-hidden">
-        <div className="relative h-64 lg:h-full">
-          <img
-            src="/home-page-pattern.jpg"
-            alt="Background Design"
-            className="absolute top-0 right-0 w-full h-full object-cover"
-          />
-          <div className="absolute bottom-0 w-full h-1/2 bg-beige-200 lg:bg-transparent"></div>
-        </div>
-      </div>
+      <div className="relative w-full lg:w-1/3 overflow-hidden lg:ml-auto">
+                <div className="h-64 lg:h-full">
+                    <Image
+                        src="/home-page-pattern.jpg"
+                        alt="Background Design"
+                        className="object-cover"
+                        fill
+                    />
+                    <div className="absolute bottom-0 w-full h-1/2 bg-beige-200 lg:bg-transparent"></div>
+                </div>
+            </div>
+
     </div>
   );
 }

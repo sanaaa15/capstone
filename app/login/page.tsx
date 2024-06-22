@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import React, { useState } from 'react';
 import CustomButton from '../components/CustomButton';
+import Image from 'next/image';
 
 function Login() {
     const [isLogin, setIsLogin] = useState(true);
@@ -17,19 +18,24 @@ function Login() {
                 </Link>
                 <div className="bg-beige-200 rounded px-8 pt-6 pb-10 mb-4 w-full max-w-md">
                     <div className="bg-white rounded-full flex justify-center mb-2 py-1">
-                        <CustomButton
-                            className={isLogin ? 'bg-blue-800 text-white' : 'bg-white text-blue-800'}
-                            onClick={() => setIsLogin(true)} href=''
+                        <button
+                            className={`${isLogin
+                                    ? 'bg-blue-800 text-white'
+                                    : 'bg-white text-blue-800'
+                                } px-8 py-2 rounded-full font-bold focus:outline-none focus:shadow-outline`}
+                            onClick={() => setIsLogin(true)}
                         >
                             Login
-                        </CustomButton>
-                        <CustomButton
-                            className={!isLogin ? 'bg-blue-800 text-white' : 'bg-white text-blue-800'}
+                        </button>
+                        <Link href='/register'><button
+                            className={`${!isLogin
+                                    ? 'bg-blue-800 text-white'
+                                    : 'bg-white text-blue-800'
+                                } px-8 py-2 rounded-full font-bold focus:outline-none focus:shadow-outline`}
                             onClick={() => setIsLogin(false)}
-                            href="/register"  // Navigate to the register page
                         >
                             Register
-                        </CustomButton>
+                        </button></Link>
                     </div>
 
                     <div className="mb-4">
@@ -37,7 +43,7 @@ function Login() {
                             Email Address
                         </label>
                         <input
-                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            className="shadow appearance-none rounded-full border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="email"
                             type="email"
                             placeholder="Enter your Email Address"
@@ -49,7 +55,7 @@ function Login() {
                         </label>
                         <div className="relative">
                             <input
-                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                                className="shadow rounded-full appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
                                 id="password"
                                 type="password"
                                 placeholder="Enter your Password"
@@ -66,18 +72,19 @@ function Login() {
                         </Link>
                     </div>
                     <div className="flex items-center justify-center">
-                        <CustomButton>
-                            Login
-                        </CustomButton>
+                    <button className='px-8 py-2  rounded-full font-bold bg-blue-800 text-white focus:outline-none focus:shadow-outline'>
+                                Login
+                            </button>
                     </div>
                 </div>
             </div>
-            <div className="relative w-full lg:w-1/3 overflow-hidden">
-                <div className=" h-64 lg:h-full">
-                    <img
+            <div className="relative w-full lg:w-1/3 overflow-hidden lg:ml-auto">
+                <div className="h-64 lg:h-full">
+                    <Image
                         src="/home-page-pattern.jpg"
                         alt="Background Design"
-                        className="absolute top-0 right-0 w-full h-full object-cover"
+                        className="object-cover"
+                        fill
                     />
                     <div className="absolute bottom-0 w-full h-1/2 bg-beige-200 lg:bg-transparent"></div>
                 </div>
@@ -87,4 +94,3 @@ function Login() {
 }
 
 export default Login;
-
