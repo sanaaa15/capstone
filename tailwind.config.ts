@@ -9,8 +9,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        'blue-800': '#023061',
-        'beige-200': '#E8DFCD',
+        'blue': '#023061',
+        'beige': '#E8DFCD',
+        'navy':'#13223C',
       },
     },
   },
