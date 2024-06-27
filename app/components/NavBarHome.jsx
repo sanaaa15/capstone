@@ -37,7 +37,7 @@ const NavBarHome = () => {
              </div>
             )}
           </div>
-          <Link href="/about-us" passHref>
+          <Link href="/about" passHref>
             <span className="text-navy cursor-pointer font-medium">About Us</span>
           </Link>
         </div>

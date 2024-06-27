@@ -43,7 +43,7 @@ function Login() {
                             Email Address
                         </label>
                         <input
-                            className="shadow appearance-none rounded-full border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            className="shadow appearance-none rounded-full  w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="email"
                             type="email"
                             placeholder="Enter your Email Address"
