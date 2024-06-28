@@ -20,10 +20,10 @@ function About() {
         </div>
 
         <div className="min-h-screen bg-beige p-16">
-        <div className="absolute right-0 p-8 bg-navy h-[60%] w-[20%] top-[130%] bg-cover bg-center" style={{ backgroundImage: "url('/about-page-pattern.jpg')"}}>
+        <div className="absolute right-0 p-8 bg-navy h-[70%] w-[20%] top-[125%] bg-cover bg-center" style={{ backgroundImage: "url('/about-page-pattern.jpg')"}}>
           </div>
 
-          <div className="absolute left-0 p-8 bg-navy h-[60%] w-[20%] top-[130%] bg-cover bg-center" style={{ backgroundImage: "url('/about-page-pattern.jpg')"}}>
+          <div className="absolute left-0 p-8 bg-navy h-[70%] w-[20%] top-[125%] bg-cover bg-center" style={{ backgroundImage: "url('/about-page-pattern.jpg')"}}>
           </div> 
         </div>
 
