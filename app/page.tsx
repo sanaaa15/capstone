@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useRef } from 'react';
 import NavBarHome from './components/NavBarHome';
+import Image from 'next/image';
 
 const HomePage = () => {
   const elementsRef = useRef([]);
@@ -64,16 +65,16 @@ const HomePage = () => {
         </div>
         <div className="flex bg-beige mx-4 p-8">
           <div className="flex flex-col items-center mx-4">
-            <img src="kurta-1.png" alt="Image 1" className="h-[78%] w-64 object-cover" />
-            <p className="mt-4 text-center text-navy text-medium">“plain white color”</p>
+            <Image src="/kurta-1.png" alt="Image 1" height={512} width={256} className="h-[78%] w-64 object-cover" />
+            <p className="mt-8 text-center text-navy text-medium">“plain white color”</p>
           </div>
           <div className="flex flex-col items-center mx-4">
-            <img src="kurta-2.png" alt="Image 2" className="h-[78%] w-64 object-cover" />
-            <p className="mt-4 text-center text-navy text-medium">“white and orange, anarkali”</p>
+            <Image src="/kurta-2.png" alt="Image 2" height={512} width={256} className="h-[78%] w-64 object-cover" />
+            <p className="mt-8 text-center text-navy text-medium">“white and orange, anarkali”</p>
           </div>
           <div className="flex flex-col items-center mx-4">
-            <img src="kurta-3.jpg" alt="Image 3" className="h-[78%] w-64 object-cover" />
-            <p className="mt-4 text-center text-navy text-medium ">“red in color, floral pattern, boat neck”</p>
+            <Image src="/kurta-3.jpg" alt="Image 3" height={512} width={256} className="h-[78%] w-64 object-cover" />
+            <p className="mt-8 text-center text-navy text-medium ">“red in color, floral pattern, boat neck”</p>
           </div>
         </div>
       </div>
