@@ -26,7 +26,7 @@ function Register() {
               Login
             </CustomButton>
             <CustomButton
-              className={`px-10 py-2 rounded-full focus:outline-none focus:shadow-outline ${!isLogin ? 'bg-navy text-white' : 'bg-white text-navy'} mx-2`}
+              className={`px-14 py-2 rounded-full focus:outline-none focus:shadow-outline ${!isLogin ? 'bg-navy text-white' : 'bg-white text-navy'} mx-2`}
               onClick={() => setIsLogin(false)}
               href=""
             >
