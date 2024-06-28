@@ -12,17 +12,17 @@ function Login() {
         <div className="flex min-h-screen bg-beige">
             <div className="flex flex-col items-center justify-center w-1/2 p-8">
                 <Link href="/">
-                    <div className="text-blue font-bold text-6xl md:text-8xl font-custom-1 mb-4 lg:mb-0">
+                    <div className="text-blue font-bold text-7xl md:text-8xl font-custom-1 mb-4 lg:mb-0">
                         tailor swift
                     </div>
                 </Link>
-                <div className="bg-beige rounded px-8 pt-6 pb-10 mb-4 w-full max-w-md">
-                    <div className="bg-white rounded-full flex justify-center mb-2 py-1">
+                <div className="bg-beige rounded px-6 pt-6 pb-10 mb-4 w-full max-w-md">
+                    <div className="bg-white rounded-full flex justify-center mb-2 py-2 w-[90%]">
                         <button
                             className={`${isLogin
                                     ? 'bg-blue text-white'
                                     : 'bg-white text-blue'
-                                } px-8 py-2 rounded-full font-bold focus:outline-none focus:shadow-outline`}
+                                } px-10 py-2 rounded-full font-bold focus:outline-none focus:shadow-outline`}
                             onClick={() => setIsLogin(true)}
                         >
                             Login
@@ -39,7 +39,7 @@ function Login() {
                     </div>
 
                     <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+                        <label className="block text-navy text-sm  mb-2 my-7" htmlFor="email">
                             Email Address
                         </label>
                         <input
@@ -50,12 +50,12 @@ function Login() {
                         />
                     </div>
                     <div className="mb-6">
-                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+                        <label className="block text-gray-700 text-sm  mb-2" htmlFor="password">
                             Password
                         </label>
                         <div className="relative">
                             <input
-                                className="shadow rounded-full appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                                className="shadow rounded-full appearance-none border  w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
                                 id="password"
                                 type="password"
                                 placeholder="Enter your Password"
@@ -81,7 +81,7 @@ function Login() {
             <div className="relative w-full lg:w-1/3 overflow-hidden lg:ml-auto">
                 <div className="h-64 lg:h-full">
                     <Image
-                        src="/home-page-pattern.jpg"
+                        src="/auth-pattern.jpg"
                         alt="Background Design"
                         className="object-cover"
                         fill
