@@ -9,9 +9,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        'blue-800': '#023061',
-        'beige-200': '#E8DFCD',
+        'blue': '#023061',
+        'beige': '#E8DFCD',
+        'navy':'#13223C',
       },
+      animation: {
+        'infinite-scroll': 'infinite-scroll 25s linear infinite',
+      },
+      keyframes: {
+        'infinite-scroll': {
+          from: { transform: 'translateX(0)' },
+          to: { transform: 'translateX(-50%)' },
+        }
+      }
     },
   },
   plugins: [],

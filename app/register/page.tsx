@@ -9,24 +9,24 @@ function Register() {
   const [isLogin, setIsLogin] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-beige-200">
+    <div className="flex min-h-screen bg-beige">
       <div className="flex flex-col items-center justify-center w-1/2 p-8">
         <Link href="/">
-          <div className="text-blue-800 font-bold text-6xl md:text-8xl font-custom-1 mb-4 lg:mb-0">
+          <div className="text-blue font-bold text-6xl md:text-8xl font-custom-1 mb-4 lg:mb-0">
             tailor swift
           </div>
         </Link>
-        <div className="bg-beige-200 rounded px-8 pt-6 pb-10 mb-4 w-full max-w-md">
+        <div className="bg-beige rounded px-8 pt-6 pb-10 mb-4 w-full max-w-md">
           <div className="bg-white rounded-full flex justify-center mb-2 py-1">
             <CustomButton
-              className={isLogin ? 'bg-blue-800 text-white' : 'bg-white text-blue-800'}
+              className={isLogin ? 'bg-blue text-white' : 'bg-white text-blue'}
               onClick={() => setIsLogin(true)}
               href="/login"  // Navigate to the login page
             >
               Login
             </CustomButton>
             <CustomButton
-              className={!isLogin ? 'bg-blue-800 text-white' : 'bg-white text-blue-800'}
+              className={!isLogin ? 'bg-blue text-white' : 'bg-white text-blue'}
               onClick={() => setIsLogin(false)} href=''
             >
               Register
@@ -67,7 +67,7 @@ function Register() {
             />
           </div>
           <div className="flex items-center justify-center">
-          <button className='px-8 py-2  rounded-full font-bold bg-blue-800 text-white focus:outline-none focus:shadow-outline'>
+          <button className='px-8 py-2  rounded-full font-bold bg-blue text-white focus:outline-none focus:shadow-outline'>
                                 Register
                             </button>
           </div>
@@ -81,7 +81,7 @@ function Register() {
                         className="object-cover"
                         fill
                     />
-                    <div className="absolute bottom-0 w-full h-1/2 bg-beige-200 lg:bg-transparent"></div>
+                    <div className="absolute bottom-0 w-full h-1/2 bg-beige lg:bg-transparent"></div>
                 </div>
             </div>
 

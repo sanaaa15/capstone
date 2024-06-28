@@ -30,3 +30,13 @@
 }
 
 
+html, body {
+  background-color: #E8DFCD; /* Beige color */
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#root, #__next {
+  height: 100%;
+}
