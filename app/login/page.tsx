@@ -1,12 +1,32 @@
 'use client';
-
 import Link from 'next/link';
-import React, { useState } from 'react';
-import CustomButton from '../components/CustomButton';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import CustomButton from '../components/CustomButton';
 
-function Login() {
+export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+   
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    if (response.ok) {
+      const data = await response.json();
+      localStorage.setItem('token', data.token);  // Store the token
+      router.push('/');
+    } else {
+      alert('Login failed');
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-beige">
@@ -33,45 +53,52 @@ function Login() {
               Register
             </CustomButton>
           </div>
-
-          <div className="mb-5">
-            <label className="block text-navy text-md font-medium mb-2" htmlFor="email">
-              Email Address
-            </label>
-            <input
-              className="shadow appearance-none border border-navy rounded-full w-full py-4 px-3 text-gray leading-tight focus:outline-none focus:shadow-outline"
-              id="email"
-              type="email"
-              placeholder="Enter your Email Address"
-            />
-          </div>
-          <div className="mb-7">
-            <label className="block text-navy text-md font-medium mb-2" htmlFor="password">
-              Password
-            </label>
-            <div className="relative">
+          <form onSubmit={handleSubmit}>
+            <div className="mb-5">
+              <label className="block text-navy text-md font-medium mb-2" htmlFor="email">
+                Email Address
+              </label>
               <input
                 className="shadow appearance-none border border-navy rounded-full w-full py-4 px-3 text-gray leading-tight focus:outline-none focus:shadow-outline"
-                id="password"
-                type="password"
-                placeholder="Enter your Password"
+                id="email"
+                type="email"
+                placeholder="Enter your Email Address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
               />
             </div>
-          </div>
-          <div className="flex items-center justify-between mb-4">
-            <label className="flex items-center text-gray-700 text-sm font-bold">
-              <input className="mr-2 leading-tight" type="checkbox" />
-              <span className="text-sm">Remember me</span>
-            </label>
-            <Link className="inline-block align-baseline font-bold text-sm text-blue hover:text-blue" href="/forgotpassword">
-              Forgot Password?
-            </Link>
-          </div>
-          <div className="flex items-center justify-center">
-            <button className="px-20 py-3 my-5 rounded-full bg-navy text-white focus:outline-none focus:shadow-outline" style={{marginLeft: '48%'}}>
-              Login
-            </button>
-          </div>
+            <div className="mb-7">
+              <label className="block text-navy text-md font-medium mb-2" htmlFor="password">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  className="shadow appearance-none border border-navy rounded-full w-full py-4 px-3 text-gray leading-tight focus:outline-none focus:shadow-outline"
+                  id="password"
+                  type="password"
+                  placeholder="Enter your Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-between mb-4">
+              <label className="flex items-center text-gray-700 text-sm font-bold">
+                <input className="mr-2 leading-tight" type="checkbox" />
+                <span className="text-sm">Remember me</span>
+              </label>
+              <Link className="inline-block align-baseline font-bold text-sm text-blue hover:text-blue" href="/forgotpassword">
+                Forgot Password?
+              </Link>
+            </div>
+            <div className="flex items-center justify-center">
+              <button className="px-20 py-3 my-5 rounded-full bg-navy text-white focus:outline-none focus:shadow-outline" onClick={handleSubmit} type="submit">
+                Login
+              </button>
+            </div>
+          </form>
         </div>
       </div>
       <div className="relative w-full lg:w-1/3 overflow-hidden lg:ml-auto">
@@ -88,5 +115,3 @@ function Login() {
     </div>
   );
 }
-
-export default Login;

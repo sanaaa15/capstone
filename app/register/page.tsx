@@ -4,9 +4,34 @@ import Link from 'next/link';
 import React, { useState } from 'react';
 import CustomButton from '../components/CustomButton';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 function Register() {
   const [isLogin, setIsLogin] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+   
+    const response = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fullName, email, password }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      // You might want to automatically log the user in here
+      // For now, we'll just redirect to the login page
+      router.push('/login');
+    } else {
+      const errorData = await response.json();
+      alert(errorData.error || 'Registration failed');
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-beige">
@@ -34,44 +59,55 @@ function Register() {
             </CustomButton>
           </div>
 
-          <div className="mb-5">
-            <label className="block text-navy text-md font-medium mb-2" htmlFor="fullName">
-              Full Name
-            </label>
-            <input
-              className="shadow appearance-none border border-navy rounded-full w-full py-4 px-3 text-gray leading-tight focus:outline-none focus:shadow-outline"
-              id="fullName"
-              type="text"
-              placeholder="Enter your Full Name"
-            />
-          </div>
-          <div className="mb-5">
-            <label className="block text-navy text-md font-medium mb-2" htmlFor="email">
-              Email Address
-            </label>
-            <input
-              className="shadow appearance-none border border-navy rounded-full w-full py-4 px-3 text-gray leading-tight focus:outline-none focus:shadow-outline"
-              id="email"
-              type="email"
-              placeholder="Enter your Email Address"
-            />
-          </div>
-          <div className="mb-7">
-            <label className="block text-navy text-md font-medium mb-2" htmlFor="password">
-              Password
-            </label>
-            <input
-              className="shadow appearance-none border border-navy rounded-full w-full py-4 px-3 text-gray leading-tight focus:outline-none focus:shadow-outline"
-              id="password"
-              type="password"
-              placeholder="Enter your Password"
-            />
-          </div>
-          <div className="flex items-center justify-center">
-            <button className='px-20 py-3 rounded-full bg-navy text-white focus:outline-none focus:shadow-outline' style={{marginLeft: '42%'}}>
-              Register
-            </button>
-          </div>
+          <form onSubmit={handleSubmit}>
+            <div className="mb-5">
+              <label className="block text-navy text-md font-medium mb-2" htmlFor="fullName">
+                Full Name
+              </label>
+              <input
+                className="shadow appearance-none border border-navy rounded-full w-full py-4 px-3 text-gray leading-tight focus:outline-none focus:shadow-outline"
+                id="fullName"
+                type="text"
+                placeholder="Enter your Full Name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="mb-5">
+              <label className="block text-navy text-md font-medium mb-2" htmlFor="email">
+                Email Address
+              </label>
+              <input
+                className="shadow appearance-none border border-navy rounded-full w-full py-4 px-3 text-gray leading-tight focus:outline-none focus:shadow-outline"
+                id="email"
+                type="email"
+                placeholder="Enter your Email Address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="mb-7">
+              <label className="block text-navy text-md font-medium mb-2" htmlFor="password">
+                Password
+              </label>
+              <input
+                className="shadow appearance-none border border-navy rounded-full w-full py-4 px-3 text-gray leading-tight focus:outline-none focus:shadow-outline"
+                id="password"
+                type="password"
+                placeholder="Enter your Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="flex items-center justify-center">
+              <button type="submit" className='px-20 py-3 rounded-full bg-navy text-white focus:outline-none focus:shadow-outline' style={{marginLeft: '42%'}}>
+                Register
+              </button>
+            </div>
+          </form>
         </div>
       </div>
       <div className="relative w-full lg:w-1/3 overflow-hidden lg:ml-auto">
