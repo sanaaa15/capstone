@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -27,7 +29,14 @@ export default function Login() {
   };
 
   return (
-    <div>
+    <div className="flex min-h-screen bg-beige">
+      <div className="flex flex-col items-center justify-center w-1/2 p-8">
+      <Link href="/">
+          <div className="text-blue font-bold text-7xl md:text-8xl font-custom-1 mb-4 lg:mb-0">
+            tailor swift
+          </div>
+        </Link>
+      </div>
       <h1>Login</h1>
       <form onSubmit={handleSubmit}>
         <input
