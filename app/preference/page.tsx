@@ -1,6 +1,7 @@
 'use client'
 import React, { useState } from 'react';
 import NavBarHome from '../components/NavBarHome';
+import withAuth from '../components/withAuth';
 
 const questions = [
   {
@@ -121,4 +122,4 @@ function Preference() {
   );
 }
 
-export default Preference;
+export default withAuth(Preference);

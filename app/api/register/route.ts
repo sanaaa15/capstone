@@ -3,12 +3,7 @@ import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-const dbConfig = {
-  host: 'localhost',
-  user: 'root',
-  password: '@Sana121',
-  database: 'capstone',
-};
+import dbConfig from '../dbconfig'
 
 export async function POST(request) {
   const { fullName, email, password } = await request.json();

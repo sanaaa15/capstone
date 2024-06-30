@@ -26,7 +26,7 @@ function Register() {
       const data = await response.json();
       // You might want to automatically log the user in here
       // For now, we'll just redirect to the login page
-      router.push('/login');
+      router.push('/preferences');
     } else {
       const errorData = await response.json();
       alert(errorData.error || 'Registration failed');
