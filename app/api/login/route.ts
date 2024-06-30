@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 const dbConfig = {
   host: 'localhost',
   user: 'root',
-  password: 'Paneer@12345',
+  password: '@Sana121',
   database: 'capstone',
 };
 

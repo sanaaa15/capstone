@@ -9,7 +9,7 @@ const questions = [
   },
   {
     question: "2. Which color palette do you usually lean towards?",
-    options: ["Neutral(Beige, Cream, white)", "Bright (Red, Yellow, Orange)", "Pastel (Light Blue, Mint Green, Lavender)", "Dark (Navy Blue, Maroon, Black)"],
+    options: ["Neutral (Beige, Cream, White)", "Bright (Red, Yellow, Orange)", "Pastel (Light Blue, Mint Green, Lavender)", "Dark (Navy Blue, Maroon, Black)"],
   },
   {
     question: "3. What type of designs do you prefer?",
@@ -17,7 +17,7 @@ const questions = [
   },
   {
     question: "4. How do you like your kurta to fit?",
-    options: ["Fitted silhouette tailored to your body shape", "A relaxed fit for comfortable wear", "A flared design that adds movement and volume"],
+    options: ["Fitted silhouette tailored to your body shape", "A relaxed fit for comfortable wear", "A flared design that adds movement and volume", "An oversized fit for a casual look"],
   },
   {
     question: "5. Which fabric best aligns with your style?",
@@ -27,11 +27,23 @@ const questions = [
 
 function Preference() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedOptions, setSelectedOptions] = useState<string[][]>(questions.map(() => []));
 
   const handleNext = () => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     }
+  };
+
+  const handleOptionToggle = (index: number, option: string) => {
+    const newSelectedOptions = [...selectedOptions];
+    const optionIndex = newSelectedOptions[index].indexOf(option);
+    if (optionIndex === -1) {
+      newSelectedOptions[index].push(option);
+    } else {
+      newSelectedOptions[index].splice(optionIndex, 1);
+    }
+    setSelectedOptions(newSelectedOptions);
   };
 
   const handleStartDesigning = () => {
@@ -41,12 +53,16 @@ function Preference() {
   return (
     <div>
       <div className="bg-navy min-h-screen">
-        <div style={{ marginLeft: '2%'}}>
+        <div style={{ marginLeft: '2%' }}>
           <NavBarHome fontColor="text-beige" bgColor="bg-navy" />
         </div>
         <div className="flex flex-col items-center justify-center my-10">
           <div className="text-white text-center mb-10 w-[50%]">
-            <p style={{fontSize: '120%'}}>We'd love to uncover your style: from fabric to color, design flair to fit preference, and the occasions that inspire your wardrobe. Share your preferences and let's craft a kurta that truly reflects you!</p>
+            <p style={{ fontSize: '120%' }}>We'd love to uncover your style: from fabric to color, design flair to fit preference, and the occasions that inspire your wardrobe. Share your preferences and let's craft a kurta that truly reflects you!</p>
+          </div>
+          <div className="bg-beige absolute left-0 p-4 w-[20%] h-[70%]" style={{ backgroundImage: "url('/pref-pattern.jpg')", backgroundSize: 'cover' }}>
+          </div>
+          <div className="bg-beige absolute right-0 p-4 w-[20%] h-[70%]" style={{ backgroundImage: "url('/pref-pattern.jpg')", backgroundSize: 'cover' }}>
           </div>
           <div
             key={currentQuestion}
@@ -60,13 +76,16 @@ function Preference() {
               {questions[currentQuestion].options.map((option, index) => (
                 <button
                   key={index}
-                  className="block w-full py-2 px-4 bg-navy text-beige rounded-md hover:bg-blue transition-colors"
+                  className={`block w-full py-2 px-4 rounded-md transition-colors ${
+                    selectedOptions[currentQuestion].includes(option) ? 'bg-blue text-white' : 'bg-navy text-beige'
+                  } hover:bg-blue`}
+                  onClick={() => handleOptionToggle(currentQuestion, option)}
                 >
                   {option}
                 </button>
               ))}
             </div>
-            <div className="mt-4">
+            <div className="mt-4 text-right">
               {currentQuestion < questions.length - 1 ? (
                 <button
                   onClick={handleNext}

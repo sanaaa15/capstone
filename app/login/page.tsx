@@ -94,7 +94,7 @@ export default function Login() {
               </Link>
             </div>
             <div className="flex items-center justify-center">
-              <button className="px-20 py-3 my-5 rounded-full bg-navy text-white focus:outline-none focus:shadow-outline" onClick={handleSubmit} type="submit">
+              <button className="px-20 py-3 my-5 rounded-full bg-navy text-white focus:outline-none focus:shadow-outline" onClick={handleSubmit} type="submit" style={{marginLeft: '50%'}}>
                 Login
               </button>
             </div>

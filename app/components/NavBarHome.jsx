@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Logo from './Logo';
 
-const NavBarHome = ({ fontColor = 'text-navy', bgColor = 'bg-beige' }) => {
+const NavBarHome = ({ fontColor = 'text-blue', bgColor = 'bg-beige' }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   return (
@@ -26,7 +26,7 @@ const NavBarHome = ({ fontColor = 'text-navy', bgColor = 'bg-beige' }) => {
             {dropdownOpen && (
               <div className="absolute left-1/2 transform -translate-x-1/2 mt-2 w-48 bg-navy text-white shadow-lg z-10">
                 <Link href="/login" passHref>
-                  <span className="block px-4 py-2 hover:bg-beige hover:rounded-3xl hover:text-navy cursor-pointer text-center">
+                  <span className="block px-4 py-2 hover:bg-beige  hover:text-navy cursor-pointer text-center">
                     Login/Register
                   </span>
                 </Link>
