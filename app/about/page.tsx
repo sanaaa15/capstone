@@ -13,7 +13,7 @@ function About() {
         <div className="flex flex-col space-y-16">
           <div className="flex items-start -mr-16 mt-4">
             <div className="w-2/3 pr-16">
-              <h2 className="text-2xl font-bold mb-6 text-navy">Welcome to Tailor Swift!</h2>
+              <h2 className="text-3xl font-bold mb-6 text-navy">Welcome to Tailor Swift!</h2>
               <p className='text-lg text-justify'>At Tailor Swift, we believe in the perfect blend of tradition and technology. Our mission is to bring you beautifully crafted kurtas that are personalized to your unique style and measurements. Each piece is a testament to our commitment to quality, comfort, and elegance.</p>
             </div>
             <div className="w-[45%] h-48 bg-navy bg-cover bg-center flex-shrink-0" style={{ backgroundImage: "url('/about-page-pattern.jpg')" }}></div>
