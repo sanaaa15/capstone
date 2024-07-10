@@ -24,9 +24,8 @@ function Register() {
 
     if (response.ok) {
       const data = await response.json();
-      // You might want to automatically log the user in here
-      // For now, we'll just redirect to the login page
-      router.push('/preferences');
+  localStorage.setItem('token', data.token); // Assuming the server returns a token
+  router.push('/preference');
     } else {
       const errorData = await response.json();
       alert(errorData.error || 'Registration failed');

@@ -1,5 +1,7 @@
 'use client'
+
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import NavBarHome from '../components/NavBarHome';
 import withAuth from '../components/withAuth';
 
@@ -27,6 +29,7 @@ const questions = [
 ];
 
 function Preference() {
+  const router = useRouter();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<string[][]>(questions.map(() => []));
 
@@ -47,62 +50,89 @@ function Preference() {
     setSelectedOptions(newSelectedOptions);
   };
 
+  const savePreferences = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+  
+    try {
+      const response = await fetch('/api/savePreferences', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ preferences: selectedOptions })
+      });
+  
+      if (response.ok) {
+        router.push('/recommendation');
+      } else {
+        console.error('Failed to save preferences');
+        // Optionally, add user feedback here
+      }
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      // Optionally, add user feedback here
+    }
+  };
+
   const handleStartDesigning = () => {
-    window.location.href = '/recommendation';
+    savePreferences();
   };
 
   return (
-    <div>
-      <div className="bg-navy min-h-screen">
-        <div style={{ marginLeft: '2%' }}>
-          <NavBarHome fontColor="text-beige" bgColor="bg-navy" />
+    <div className="bg-navy min-h-screen">
+      <div style={{ marginLeft: '2%' }}>
+        <NavBarHome fontColor="text-beige" bgColor="bg-navy" />
+      </div>
+      <div className="flex flex-col items-center justify-center my-10">
+        <div className="text-white text-center mb-10 w-[50%]">
+          <p style={{ fontSize: '120%' }}>We'd love to uncover your style: from fabric to color, design flair to fit preference, and the occasions that inspire your wardrobe. Share your preferences and let's craft a kurta that truly reflects you!</p>
         </div>
-        <div className="flex flex-col items-center justify-center my-10">
-          <div className="text-white text-center mb-10 w-[50%]">
-            <p style={{ fontSize: '120%' }}>We'd love to uncover your style: from fabric to color, design flair to fit preference, and the occasions that inspire your wardrobe. Share your preferences and let's craft a kurta that truly reflects you!</p>
+        <div className="bg-beige absolute left-0 p-4 w-[20%] h-[70%]" style={{ backgroundImage: "url('/pref-pattern.jpg')", backgroundSize: 'cover' }}>
+        </div>
+        <div className="bg-beige absolute right-0 p-4 w-[20%] h-[70%]" style={{ backgroundImage: "url('/pref-pattern.jpg')", backgroundSize: 'cover' }}>
+        </div>
+        <div
+          key={currentQuestion}
+          className="bg-beige text-navy p-10 rounded-lg shadow-lg transition-transform transform scale-100"
+          style={{ width: '500px', animation: 'fadeIn 1s' }}
+        >
+          <h2 className="text-2xl font-bold mb-4">
+            {questions[currentQuestion].question}
+          </h2>
+          <div className="space-y-2">
+            {questions[currentQuestion].options.map((option, index) => (
+              <button
+                key={index}
+                className={`block w-full py-2 px-4 rounded-md transition-colors ${
+                  selectedOptions[currentQuestion].includes(option) ? 'bg-blue text-white' : 'bg-navy text-beige'
+                } hover:bg-blue`}
+                onClick={() => handleOptionToggle(currentQuestion, option)}
+              >
+                {option}
+              </button>
+            ))}
           </div>
-          <div className="bg-beige absolute left-0 p-4 w-[20%] h-[70%]" style={{ backgroundImage: "url('/pref-pattern.jpg')", backgroundSize: 'cover' }}>
-          </div>
-          <div className="bg-beige absolute right-0 p-4 w-[20%] h-[70%]" style={{ backgroundImage: "url('/pref-pattern.jpg')", backgroundSize: 'cover' }}>
-          </div>
-          <div
-            key={currentQuestion}
-            className="bg-beige text-navy p-10 rounded-lg shadow-lg transition-transform transform scale-100"
-            style={{ width: '500px', animation: 'fadeIn 1s' }}
-          >
-            <h2 className="text-2xl font-bold mb-4">
-              {questions[currentQuestion].question}
-            </h2>
-            <div className="space-y-2">
-              {questions[currentQuestion].options.map((option, index) => (
-                <button
-                  key={index}
-                  className={`block w-full py-2 px-4 rounded-md transition-colors ${
-                    selectedOptions[currentQuestion].includes(option) ? 'bg-blue text-white' : 'bg-navy text-beige'
-                  } hover:bg-blue`}
-                  onClick={() => handleOptionToggle(currentQuestion, option)}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
-            <div className="mt-4 text-right">
-              {currentQuestion < questions.length - 1 ? (
-                <button
-                  onClick={handleNext}
-                  className="py-2 px-4 bg-navy text-beige rounded-md hover:bg-blue transition-colors"
-                >
-                  Next
-                </button>
-              ) : (
-                <button
-                  onClick={handleStartDesigning}
-                  className="py-2 px-4 bg-navy text-beige rounded-md hover:bg-blue transition-colors"
-                >
-                  Start Designing
-                </button>
-              )}
-            </div>
+          <div className="mt-4 text-right">
+            {currentQuestion < questions.length - 1 ? (
+              <button
+                onClick={handleNext}
+                className="py-2 px-4 bg-navy text-beige rounded-md hover:bg-blue transition-colors"
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                onClick={handleStartDesigning}
+                className="py-2 px-4 bg-navy text-beige rounded-md hover:bg-blue transition-colors"
+              >
+                Start Designing
+              </button>
+            )}
           </div>
         </div>
       </div>
