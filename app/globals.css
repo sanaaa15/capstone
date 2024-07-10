@@ -19,7 +19,25 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: 'CustomFont3';
+  src: url('/fonts/Poppins-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
 
+@font-face {
+  font-family: 'CustomFont3';
+  src: url('/fonts/Poppins-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+/* Add more @font-face declarations for other weights/styles if needed */
+
+.font-custom-3 {
+  font-family: 'CustomFont3', sans-serif;
+}
 
 .font-custom-1 {
     font-family: 'CustomFont1', sans-serif;
