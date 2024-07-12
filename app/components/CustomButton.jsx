@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 
 const CustomButton = ({ children, className = '', onClick = () => {}, href = '', height = 'h-auto' }) => {
-  const commonClasses = `px-8 py-2  rounded-full font-medium ${className} ${height} focus:outline-none focus:shadow-outline`;
+  const commonClasses = `px-10 py-2  rounded-full font-medium ${className} ${height} focus:outline-none focus:shadow-outline`;
 
   if (href) {
     return (

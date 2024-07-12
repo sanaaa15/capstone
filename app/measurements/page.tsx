@@ -1,66 +1,107 @@
+'use client'
+
+import { useState } from 'react';
 import Head from 'next/head'
 import Image from 'next/image'
 import Logo from '../components/Logo';
 import Link from 'next/link';
 
 export default function Measurements() {
-//   const measurements = [
-//     "Bust", "Under Bust", "Waist", "Hips", "Front Width", "Neck",
-//     "Bust Height", "Bust Width", "Shoulder to Waist on Front", "Leg Length",
-//     "Back Width", "Shoulder", "Shoulder Width", "Neck to Waist",
-//     "Shoulder to Elbow", "Bicep", "Shoulder to Waist on Back", "Arm Length",
-//     "Wrist", "Thigh", "Calf", "Height", "Neck to Floor", "Waist to Floor"
-//   ];
-const measurements = [
-    "Shoulder", "Front Neck Depth", "Back Neck Depth", "Arm Hole", "Short Sleeve Length", "3/4th Sleeve Length",
-    "Full Sleeve Length", "Biceps", "Elbow Round", "Mohari (Wrist)", "Chest (around)",
-    "Waist (around)", "Hip (around)", "Kurta Length"];
+  const [isEditable, setIsEditable] = useState(false);
+  const [height, setHeight] = useState('');
+  const [measurements, setMeasurements] = useState({
+    "Shoulder Width": '', "Arm Length": '', "Neck": '', "Wrist": '',
+    "Chest (around)": '', "Waist (around)": '', "Hip (around)": '', 
+    "Thigh": '', "Ankle": ''
+  });
+
+  const handleMeasurementChange = (key: string, value: string) => {
+    setMeasurements(prev => ({ ...prev, [key]: value }));
+  };
+
+  const toggleEditable = () => {
+    setIsEditable(!isEditable);
+  };
 
   return (
-    <div className="max-w-6xl mx-auto p-5 bg-beige-200">
+    <div className="max-w-6xl mx-auto p-2 bg-beige-200">
       <header className="flex justify-between items-center mb-10">
         <Logo />
         <nav className="space-x-5">
-          <Link href="/" className="text-gray-700">Home</Link>
-          <Link href="#" className="text-gray-700">Profile</Link>
-          <Link href="/wishlist" className="text-gray-700">Wishlist</Link>
-          <Link href="/cart" className="text-gray-700">Cart</Link>
+          <Link href="/" className="text-navy font-medium">Home</Link>
+          <Link href="#" className="text-navy font-medium">Profile</Link>
+          <Link href="/wishlist" className="text-navy font-medium">Wishlist</Link>
+          <Link href="/cart" className="text-navy font-medium">Cart</Link>
         </nav>
       </header>
       <main>
-        <h1 className="text-center mb-8 text-blue text-4xl ">
+        <h1 className="text-center mb-8 text-blue text-3xl font-bold">
           We use state-of-the-art computer vision models to extract your measurements using only an image.
         </h1>
        
-        <button className="block mx-auto mb-8 px-4 py-2 bg-[#003366] text-white rounded-full">
-          Upload image
-        </button>
+        <div className="flex justify-center space-x-4 mb-8">
+          <button className="px-6 py-2 bg-navy text-white rounded-full hover:bg-blue transition duration-300">
+            Upload image
+          </button>
+          <div className="flex items-center">
+            <label htmlFor="height" className="mr-2 text-navy font-medium">Height (cm):</label>
+            <input
+              id="height"
+              type="number"
+              value={height}
+              onChange={(e) => setHeight(e.target.value)}
+              className="border border-navy rounded-full px-3 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-blue"
+              placeholder="cm"
+            />
+          </div>
+        </div>
 
-        <div className="flex border-blue-500 justify-between mb-8 ">
-          <div className='w-[39%]'>
+        <div className="flex justify-between mb-8">
+          <div className='w-[39%] mt-[5%]'>
             <Image src="/Kurta_measurements4.png" alt="Measurement Diagram" width={500} height={600} />
           </div>
-          <div className="w-[48%]">
-            <table className="w-full border-collapse">
+          <div className="w-[58%]">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-navy">Measurements</h2>
+              <button 
+                className="px-6 py-2 bg-navy text-white rounded-full hover:bg-blue transition duration-300"
+                onClick={toggleEditable}
+              >
+                {isEditable ? 'Save measurements' : 'Modify measurements'}
+              </button>
+            </div>
+            <table className="w-full border-collapse bg-beige-100 rounded-lg overflow-hidden shadow-lg mb-6">
+              <thead>
+                <tr className="bg-navy text-white">
+                  <th className="p-3 text-left">Measurement</th>
+                  <th className="p-3 text-left">Value (cm)</th>
+                </tr>
+              </thead>
               <tbody>
-                {measurements.map((measurement, index) => (
-                  <tr key={index} className="border border-blue">
-                    <td className="p-2 border border-blue">{index + 1}</td>
-                    <td className="p-2 border border-blue">{measurement}</td>
-                    <td className="p-2 border border-blue"></td>
+                {Object.entries(measurements).map(([key, value], index) => (
+                  <tr key={index} className={index % 2 === 0 ? 'bg-beige-50' : 'bg-beige-100'}>
+                    <td className="p-3 border-b border-beige-200 text-navy font-medium">{key}</td>
+                    <td className="p-3 border-b border-beige-200">
+                      <input
+                        type="number"
+                        value={value}
+                        onChange={(e) => handleMeasurementChange(key, e.target.value)}
+                        className={`w-full px-3 py-1 rounded-full ${isEditable ? 'bg-white border border-blue' : 'bg-transparent'} focus:outline-none focus:ring-2 focus:ring-blue`}
+                        disabled={!isEditable}
+                        placeholder="cm"
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <button className="mt-4 px-4 py-2 bg-[#003366] text-white rounded-full">
-              Modify measurements
-            </button>
+            <div className="flex justify-center">
+              <button className="px-20 py-3 bg-navy text-white rounded-full hover:bg-blue transition duration-300">
+                Next
+              </button>
+            </div>
           </div>
         </div>
-
-        <button className="float-right px-4 py-2 bg-[#003366] text-white rounded">
-          Next
-        </button>
       </main>
     </div>
   )
