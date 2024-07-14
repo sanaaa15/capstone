@@ -21,11 +21,11 @@ function Register() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fullName, email, password }),
     });
-
+  
     if (response.ok) {
       const data = await response.json();
-  localStorage.setItem('token', data.token); // Assuming the server returns a token
-  router.push('/preference');
+      localStorage.setItem('token', data.token); // Store the token in localStorage
+      router.push('/preference');
     } else {
       const errorData = await response.json();
       alert(errorData.error || 'Registration failed');
