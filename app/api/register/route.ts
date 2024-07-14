@@ -1,15 +1,15 @@
-import { NextResponse } from 'next/server';
-import mysql from 'mysql2/promise';
+import { NextRequest, NextResponse } from 'next/server';
+import mysql, { RowDataPacket, OkPacket } from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dbConfig from '../dbconfig'
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
   const { fullName, email, password } = await request.json();
   try {
     const connection = await mysql.createConnection(dbConfig);
     // Check if user already exists
-    const [existingUsers] = await connection.execute(
+    const [existingUsers] = await connection.execute<RowDataPacket[]>(
       'SELECT * FROM users WHERE email = ?',
       [email]
     );
@@ -20,7 +20,7 @@ export async function POST(request) {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
     // Insert the new user
-    const [result] = await connection.execute(
+    const [result] = await connection.execute<OkPacket>(
       'INSERT INTO users (full_name, email, password) VALUES (?, ?, ?)',
       [fullName, email, hashedPassword]
     );

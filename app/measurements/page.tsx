@@ -1,9 +1,8 @@
 'use client'
 
 import { useState } from 'react';
-import Head from 'next/head'
+import NavBar from '../components/NavBar';
 import Image from 'next/image'
-import Logo from '../components/Logo';
 import Link from 'next/link';
 
 export default function Measurements() {
@@ -19,22 +18,41 @@ export default function Measurements() {
     setMeasurements(prev => ({ ...prev, [key]: value }));
   };
 
+  const saveMeasurements = async () => {
+    try {
+      const response = await fetch('/api/saveMeasurements', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ height, ...measurements }),
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        console.log('Measurements saved successfully');
+        setIsEditable(false);
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to save measurements:', errorData.error);
+      }
+    } catch (error) {
+      console.error('Error saving measurements:', error);
+    }
+  };
+
   const toggleEditable = () => {
-    setIsEditable(!isEditable);
+    if (isEditable) {
+      saveMeasurements();
+    } else {
+      setIsEditable(true);
+    }
   };
 
   return (
+    <div>
+    <NavBar />
     <div className="max-w-6xl mx-auto p-2 bg-beige-200">
-      <header className="flex justify-between items-center mb-10">
-        <Logo />
-        <nav className="space-x-5">
-          <Link href="/" className="text-navy font-medium">Home</Link>
-          <Link href="#" className="text-navy font-medium">Profile</Link>
-          <Link href="/wishlist" className="text-navy font-medium">Wishlist</Link>
-          <Link href="/cart" className="text-navy font-medium">Cart</Link>
-        </nav>
-      </header>
-      <main>
         <h1 className="text-center mb-8 text-blue text-3xl font-bold">
           We use state-of-the-art computer vision models to extract your measurements using only an image.
         </h1>
@@ -57,8 +75,8 @@ export default function Measurements() {
         </div>
 
         <div className="flex justify-between mb-8">
-          <div className='w-[39%] mt-[5%]'>
-            <Image src="/Kurta_measurements4.png" alt="Measurement Diagram" width={500} height={600} />
+          <div className='w-[39%] mt-[3%]'>
+            <Image src="/measurements.png" alt="Measurement Diagram" width={500} height={600} />
           </div>
           <div className="w-[58%]">
             <div className="flex justify-between items-center mb-4">
@@ -96,13 +114,15 @@ export default function Measurements() {
               </tbody>
             </table>
             <div className="flex justify-center">
+            <Link href="/recommendation">
               <button className="px-20 py-3 bg-navy text-white rounded-full hover:bg-blue transition duration-300">
                 Next
               </button>
-            </div>
+            </Link>
+          </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   )
 }
