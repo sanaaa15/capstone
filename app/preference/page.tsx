@@ -51,26 +51,21 @@ function Preference() {
   };
 
   const savePreferences = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-  
     try {
       const response = await fetch('/api/savePreferences', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ preferences: selectedOptions })
+        body: JSON.stringify({ preferences: selectedOptions }),
+        credentials: 'include', // This is important for including cookies
       });
   
       if (response.ok) {
         router.push('/recommendation');
       } else {
-        console.error('Failed to save preferences');
+        const errorData = await response.json();
+        console.error('Failed to save preferences:', errorData.error);
         // Optionally, add user feedback here
       }
     } catch (error) {

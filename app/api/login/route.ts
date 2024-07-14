@@ -35,7 +35,7 @@ export async function POST(request) {
         
         if (passwordMatch) {
           console.log('logged in successfully');
-          const token = jwt.sign({ userId: user.id, email: user.email }, 'your_jwt_secret', { expiresIn: '1h' });
+          const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
           
           const response = NextResponse.json({ success: true, email: user.email });
           response.cookies.set('token', token, {
