@@ -1,10 +1,8 @@
 'use client'
 
 import { useState } from 'react';
-import Head from 'next/head'
 import Image from 'next/image'
-import Logo from '../components/Logo';
-import Link from 'next/link';
+import NavBar from '../components/NavBar';
 
 export default function Measurements() {
   const [isEditable, setIsEditable] = useState(false);
@@ -24,17 +22,10 @@ export default function Measurements() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-2 bg-beige-200">
-      <header className="flex justify-between items-center mb-10">
-        <Logo />
-        <nav className="space-x-5">
-          <Link href="/" className="text-navy font-medium">Home</Link>
-          <Link href="#" className="text-navy font-medium">Profile</Link>
-          <Link href="/wishlist" className="text-navy font-medium">Wishlist</Link>
-          <Link href="/cart" className="text-navy font-medium">Cart</Link>
-        </nav>
-      </header>
-      <main>
+    <div>
+       <NavBar />
+       <div className="max-w-6xl mx-auto p-2 bg-beige">
+       <main>
         <h1 className="text-center mb-8 text-blue text-3xl font-bold">
           We use state-of-the-art computer vision models to extract your measurements using only an image.
         </h1>
@@ -104,5 +95,7 @@ export default function Measurements() {
         </div>
       </main>
     </div>
+    </div>
+   
   )
 }

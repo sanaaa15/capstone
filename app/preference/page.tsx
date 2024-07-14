@@ -68,7 +68,7 @@ function Preference() {
       });
   
       if (response.ok) {
-        router.push('/recommendation');
+        router.push('/measurements');
       } else {
         console.error('Failed to save preferences');
         // Optionally, add user feedback here
@@ -82,19 +82,17 @@ function Preference() {
   const handleStartDesigning = () => {
     savePreferences();
   };
-
   return (
     <div className="bg-navy min-h-screen">
       <div style={{ marginLeft: '2%' }}>
         <NavBarHome fontColor="text-beige" bgColor="bg-navy" />
       </div>
-      <div className="flex flex-col items-center justify-center my-10">
-        <div className="text-white text-center mb-10 w-[50%]">
+      <div className="flex my-10">
+      <div className="bg-beige absolute left-0 p-4 w-[45%] h-[70%]" style={{ backgroundImage: "url('/pref-pattern.jpg')", backgroundSize: 'cover' }}>
+      </div>
+      <div className="ml-[40%] w-[70%] flex flex-col items-center">
+        <div className="text-white text-center mb-10 w-[70%]">
           <p style={{ fontSize: '120%' }}>We'd love to uncover your style: from fabric to color, design flair to fit preference, and the occasions that inspire your wardrobe. Share your preferences and let's craft a kurta that truly reflects you!</p>
-        </div>
-        <div className="bg-beige absolute left-0 p-4 w-[20%] h-[70%]" style={{ backgroundImage: "url('/pref-pattern.jpg')", backgroundSize: 'cover' }}>
-        </div>
-        <div className="bg-beige absolute right-0 p-4 w-[20%] h-[70%]" style={{ backgroundImage: "url('/pref-pattern.jpg')", backgroundSize: 'cover' }}>
         </div>
         <div
           key={currentQuestion}
@@ -117,6 +115,7 @@ function Preference() {
               </button>
             ))}
           </div>
+        
           <div className="mt-4 text-right">
             {currentQuestion < questions.length - 1 ? (
               <button
@@ -133,6 +132,7 @@ function Preference() {
                 Start Designing
               </button>
             )}
+              </div>
           </div>
         </div>
       </div>
