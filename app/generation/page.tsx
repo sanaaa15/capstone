@@ -3,10 +3,11 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import NavBar from '../components/NavBar';
+import JSZip from 'jszip';
 
 const Generation = () => {
   const [prompt, setPrompt] = useState('');
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [generatedImages, setGeneratedImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGenerate = async () => {
@@ -26,12 +27,23 @@ const Generation = () => {
       });
 
       if (response.ok) {
-        const blob = await response.blob();
-        const imageUrl = URL.createObjectURL(blob);
-        setGeneratedImage(imageUrl);
+        const zipBlob = await response.blob();
+        const zip = new JSZip();
+        const contents = await zip.loadAsync(zipBlob);
+        const imageUrls: string[] = [];
+
+        for (const [filename, file] of Object.entries(contents.files)) {
+          if (filename.endsWith('.png')) {
+            const blob = await file.async('blob');
+            const imageUrl = URL.createObjectURL(blob);
+            imageUrls.push(imageUrl);
+          }
+        }
+
+        setGeneratedImages(imageUrls);
       } else {
         const errorText = await response.text();
-        console.error('Error generating image:', errorText);
+        console.error('Error generating images:', errorText);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -45,17 +57,17 @@ const Generation = () => {
       <NavBar />
       <div className="max-w-3xl mx-auto mt-[5%]">
         <div className="flex mb-8">
-        <input
-          type="text"
-          value={prompt}
-          onChange={(e) => {
-            const newPrompt = e.target.value;
-            setPrompt(newPrompt);
-            console.log('Current prompt:', newPrompt);
-          }}
-          placeholder="Enter your Prompt to Generate a Kurta"
-          className="flex-grow p-3 rounded-l-md border-2 border-navy"
-        />
+          <input
+            type="text"
+            value={prompt}
+            onChange={(e) => {
+              const newPrompt = e.target.value;
+              setPrompt(newPrompt);
+              console.log('Current prompt:', newPrompt);
+            }}
+            placeholder="Enter your Prompt to Generate a Kurta"
+            className="flex-grow p-3 rounded-l-md border-2 border-navy"
+          />
           <button
             onClick={handleGenerate}
             className="bg-navy text-white px-6 py-3 rounded-r-md"
@@ -67,11 +79,23 @@ const Generation = () => {
 
         <div className="bg-navy p-6 rounded-md">
           {isLoading ? (
-            <p className="text-white text-center">Generating image...</p>
-          ) : generatedImage ? (
-            <Image src={generatedImage} alt="Generated Kurta" width={500} height={500} className="mx-auto" />
+            <p className="text-white text-center">Generating images...</p>
+          ) : generatedImages.length > 0 ? (
+            <div className="grid grid-cols-3 gap-4">
+              {generatedImages.map((imageUrl, index) => (
+                <div key={index} className="aspect-[3/4] relative">
+                  <Image 
+                    src={imageUrl} 
+                    alt={`Generated Kurta ${index + 1}`} 
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="object-cover rounded-md"
+                  />
+                </div>
+              ))}
+            </div>
           ) : (
-            <p className="text-white text-center">Generated image will appear here</p>
+            <p className="text-white text-center">Generated images will appear here</p>
           )}
         </div>
       </div>
