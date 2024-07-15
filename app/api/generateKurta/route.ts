@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     const formData = new FormData();
     formData.append('attributes', attributes);
 
-    const response = await fetch('https://4ce3-34-168-56-216.ngrok-free.app/generate', {
+    const response = await fetch('https://257e-34-168-56-216.ngrok-free.app/generate', {
       method: 'POST',
       body: formData,
     });
