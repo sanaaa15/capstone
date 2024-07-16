@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import NavBar from '../components/NavBar';
-import JSZip from 'jszip';
+// import JSZip from 'jszip';
 
 const Generation = () => {
   const [prompt, setPrompt] = useState('');
