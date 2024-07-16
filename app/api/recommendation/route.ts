@@ -110,7 +110,19 @@ export async function POST(request: Request) {
       price: neo4j.int(record.get('price')).toNumber() // Convert Neo4j integer to JavaScript number
     }));
 
-    console.log('Generated prompts:', prompts);
+    const formattedPrompts = prompts.map(prompt => {
+      let description = ` ${prompt.color} coloured`;
+      if (prompt.fabric) description += ` made of ${prompt.fabric} fabric`;
+      if (prompt.designStyle) description += `, with a ${prompt.designStyle} design`;
+      if (prompt.sleeveStyle) description += `, ${prompt.sleeveStyle} sleeves`;
+      if (prompt.hemlineStyle) description += `, ${prompt.hemlineStyle} hemline`;
+      if (prompt.necklineStyle) description += `, ${prompt.necklineStyle} neckline`;
+      if (prompt.shape) description += `, ${prompt.shape} shape`;
+      description += `, priced at Rs. ${prompt.price}.`;
+      return description;
+    }).join('\n');
+
+    console.log('Generated prompts:', formattedPrompts);
     return NextResponse.json({ prompts });
   } catch (error) {
     console.error('Error generating prompts:', error);
