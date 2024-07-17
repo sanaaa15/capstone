@@ -25,7 +25,8 @@ function Register() {
     if (response.ok) {
       const data = await response.json();
       localStorage.setItem('token', data.token); // Store the token in localStorage
-      router.push('/preference');
+      // router.push('/preference');
+      router.push('/recommendation');
     } else {
       const errorData = await response.json();
       alert(errorData.error || 'Registration failed');
