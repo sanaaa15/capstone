@@ -23,6 +23,27 @@ const Recommendation = () => {
     return () => clearInterval(interval)
   }, [])
 
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      try {
+        const response = await fetch('/api/recommendation', {
+          method: 'POST',
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Recommended prompts:', data.prompts);
+        } else {
+          console.error('Error fetching recommendations:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    };
+
+    fetchRecommendations();
+  }, []);
+
   return (
     <div className="bg-beige min-h-screen">
       <NavBar />
