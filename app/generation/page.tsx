@@ -10,6 +10,7 @@ const Generation = () => {
   const [prompt, setPrompt] = useState('');
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [seeds, setSeeds] = useState<number[]>([]);
   const router = useRouter();
 
   const handleGenerate = async () => {
@@ -30,19 +31,9 @@ const Generation = () => {
 
       if (response.ok) {
         const zipBlob = await response.blob();
-        const zip = new JSZip();
-        const contents = await zip.loadAsync(zipBlob);
-        const imageUrls: string[] = [];
-
-        for (const [filename, file] of Object.entries(contents.files)) {
-          if (filename.endsWith('.png')) {
-            const blob = await file.async('blob');
-            const imageUrl = URL.createObjectURL(blob);
-            imageUrls.push(imageUrl);
-          }
-        }
-
+        const [imageUrls, extractedSeeds] = await extractImagesFromZip(zipBlob);
         setGeneratedImages(imageUrls);
+        setSeeds(extractedSeeds);
       } else {
         const errorText = await response.text();
         console.error('Error generating images:', errorText);
@@ -54,8 +45,27 @@ const Generation = () => {
     }
   };
 
-  const handleImageClick = (imageUrl: string) => {
-    router.push(`/kurtaDetails?prompt=${encodeURIComponent(prompt)}&imageUrl=${encodeURIComponent(imageUrl)}`);
+  const extractImagesFromZip = async (zipBlob: Blob): Promise<[string[], number[]]> => {
+    const zip = await JSZip.loadAsync(zipBlob);
+    const imageUrls: string[] = [];
+    let seeds: number[] = [];
+
+    for (const [filename, file] of Object.entries(zip.files)) {
+      if (filename.endsWith('.png')) {
+        const blob = await file.async('blob');
+        const url = URL.createObjectURL(blob);
+        imageUrls.push(url);
+      } else if (filename === 'seeds.json') {
+        const content = await file.async('text');
+        seeds = JSON.parse(content);
+      }
+    }
+
+    return [imageUrls, seeds];
+  };
+
+  const handleImageClick = (imageUrl: string, index: number) => {
+    router.push(`/customization?prompt=${encodeURIComponent(prompt)}&imageUrl=${encodeURIComponent(imageUrl)}&seed=${seeds[index]}`);
   };
 
   return (
@@ -92,7 +102,7 @@ const Generation = () => {
                 <div 
                   key={index} 
                   className="aspect-[3/4] relative cursor-pointer"
-                  onClick={() => handleImageClick(imageUrl)}
+                  onClick={() => handleImageClick(imageUrl, index)}
                 >
                   <Image 
                     src={imageUrl} 
