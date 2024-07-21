@@ -1,48 +1,113 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import NavBar from '../components/NavBar'
 import Link from 'next/link'
-
-const images = [
-  '/kurta-3.jpg',
-  '/kurta-3.jpg',
-  '/kurta-3.jpg',
-  '/kurta-3.jpg',
-  '/kurta-3.jpg'
-]
+import JSZip from 'jszip';
+import { useRouter } from 'next/navigation'
 
 const Recommendation = () => {
+  const [recommendations, setRecommendations] = useState<{prompt: string, imageUrl: string}[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
+  const fetchedRef = useRef(false)
+  const router = useRouter()
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length)
-    }, 2000)
-    return () => clearInterval(interval)
+    if (fetchedRef.current) return
+    fetchedRef.current = true
+    fetchRecommendations()
   }, [])
 
   useEffect(() => {
-    const fetchRecommendations = async () => {
-      try {
-        const response = await fetch('/api/recommendation', {
-          method: 'POST',
-        });
+    if (recommendations.length === 0) return
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % recommendations.length)
+    }, 3000) // Change image every 3 seconds
+    return () => clearInterval(interval)
+  }, [recommendations])
 
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Recommended prompts:', data.prompts);
-        } else {
-          console.error('Error fetching recommendations:', response.statusText);
-        }
-      } catch (error) {
-        console.error('Error:', error);
+  const fetchRecommendations = async () => {
+    try {
+      const response = await fetch('/api/recommendation', {
+        method: 'POST',
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const formattedPrompts = formatPrompts(data.prompts)
+        console.log('Formatted prompts:', formattedPrompts)
+        await generateImages(formattedPrompts)
+      } else {
+        console.error('Error fetching recommendations:', response.statusText)
       }
-    };
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
 
-    fetchRecommendations();
-  }, []);
+  const generateImages = async (prompts: string[]) => {
+    try {
+      const response = await fetch('/api/generateKurta', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompts }),
+      });
+
+      if (response.ok) {
+        const zipBlob = await response.blob();
+        const imageUrls = await extractImagesFromZip(zipBlob);
+        const newRecommendations = prompts.map((prompt, index) => ({
+          prompt,
+          imageUrl: imageUrls[index] || '',
+        }));
+        setRecommendations(newRecommendations);
+        console.log('Generated images for prompts:', newRecommendations);
+      } else {
+        console.error('Failed to generate images for prompts');
+      }
+    } catch (error) {
+      console.error('Error generating images:', error);
+    }
+  };
+
+  const extractImagesFromZip = async (zipBlob: Blob): Promise<string[]> => {
+    const zip = await JSZip.loadAsync(zipBlob);
+    const imageUrls: string[] = [];
+
+    for (const [filename, file] of Object.entries(zip.files)) {
+      if (filename.endsWith('.png')) {
+        const blob = await file.async('blob');
+        const url = URL.createObjectURL(blob);
+        imageUrls.push(url);
+      }
+    }
+
+    return imageUrls;
+  };
+
+  const formatPrompts = (prompts: any[]): string[] => {
+    const shuffled = [...prompts].sort(() => 0.5 - Math.random())
+    const selected = shuffled.slice(0, 5)
+
+    return selected.map(prompt => {
+      const attributes = []
+      if (prompt.color) attributes.push(`${prompt.color} color`)
+      if (prompt.fabric) attributes.push(`${prompt.fabric} fabric`)
+      if (prompt.designStyle) attributes.push(`${prompt.designStyle} design`)
+      if (prompt.sleeveStyle) attributes.push(`${prompt.sleeveStyle} sleeves`)
+      if (prompt.hemlineStyle) attributes.push(`${prompt.hemlineStyle} hemline`)
+      
+      return attributes.join(', ')
+    }).filter(prompt => prompt !== '')
+  }
+
+  const handleImageClick = (index: number) => {
+    const selectedRecommendation = recommendations[index]
+    router.push(`/kurtaDetails?prompt=${encodeURIComponent(selectedRecommendation.prompt)}&imageUrl=${encodeURIComponent(selectedRecommendation.imageUrl)}`)
+  }
 
   return (
     <div className="bg-beige min-h-screen">
@@ -52,26 +117,28 @@ const Recommendation = () => {
           <span className="text-blue">CURATED</span>{' '}
           <span className="text-white">DESIGNS FOR YOU!</span>
         </h1>
-        <div className="relative overflow-hidden">
-          <div
-            className="flex transition-transform duration-500 ease-in-out"
-            style={{ transform: `translateX(-${currentIndex * 20}%)` }}
-          >
-            {images.map((src, index) => (
-              <div key={index} className="w-[32%] flex-shrink-0 px-2">
-                <div className="aspect-[95/100] relative">
-                  <Image
-                    src={src}
-                    alt={`Design ${index + 1}`}
-                    fill
-                    style={{ objectFit: 'cover' }}
-                    className="rounded-lg border-2 border-navy"
-                  />
+        {recommendations.length > 0 && (
+          <div className="relative overflow-hidden">
+            <div
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{ transform: `translateX(-${currentIndex *20}%)` }}
+            >
+              {recommendations.map(({ prompt, imageUrl }, index) => (
+                <div key={index} className="w-[32%] flex-shrink-0 px-2 cursor-pointer" onClick={() => handleImageClick(index)}>
+                  <div className="aspect-[95/100] relative">
+                    <Image
+                      src={imageUrl}
+                      alt={`Generated Design ${index + 1}`}
+                      fill
+                      style={{ objectFit: 'cover' }}
+                      className="rounded-lg border-2 border-navy"
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
         <div className="text-center mt-8">
           <Link href="/generation">
             <button className="bg-beige text-navy border-2 border-navy py-2 px-4 rounded-lg hover:bg-navy hover:text-white transition-colors duration-300">

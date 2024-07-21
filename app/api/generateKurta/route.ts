@@ -1,37 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
-  const { attributes } = await request.json();
+  const body = await request.json();
+  const prompts = Array.isArray(body.prompts) ? body.prompts : [body.attributes];
 
-  if (!attributes || attributes.trim() === '') {
-    return NextResponse.json({ error: 'No attributes provided' }, { status: 400 });
+  if (prompts.length === 0) {
+    return NextResponse.json({ error: 'No prompts provided' }, { status: 400 });
   }
 
   try {
-    const formData = new FormData();
-    formData.append('attributes', attributes);
-
-    const response = await fetch('https://257e-34-168-56-216.ngrok-free.app/generate', {
+    const response = await fetch('https://classic-midge-healthy.ngrok-free.app/generate', {
       method: 'POST',
-      body: formData,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompts }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`API Error: ${response.status} - ${errorText}`);
-      return NextResponse.json({ error: `Failed to generate image: ${errorText}` }, { status: response.status });
+      return NextResponse.json({ error: 'Failed to generate images' }, { status: response.status });
     }
 
-    const imageBuffer = await response.arrayBuffer();
+    const zipBuffer = await response.arrayBuffer();
     
-    return new NextResponse(imageBuffer, {
+    return new NextResponse(zipBuffer, {
       status: 200,
       headers: {
-        'Content-Type': 'image/png',
+        'Content-Type': 'application/zip',
+        'Content-Disposition': 'attachment; filename="generated_kurtas.zip"',
       },
     });
   } catch (error) {
     console.error('Error:', error);
-    return NextResponse.json({ error: 'Failed to generate image' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to generate images' }, { status: 500 });
   }
 }

@@ -3,12 +3,14 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import NavBar from '../components/NavBar';
-// import JSZip from 'jszip';
+import JSZip from 'jszip';
+import { useRouter } from 'next/navigation';
 
 const Generation = () => {
   const [prompt, setPrompt] = useState('');
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -52,6 +54,10 @@ const Generation = () => {
     }
   };
 
+  const handleImageClick = (imageUrl: string) => {
+    router.push(`/kurtaDetails?prompt=${encodeURIComponent(prompt)}&imageUrl=${encodeURIComponent(imageUrl)}`);
+  };
+
   return (
     <div className="bg-beige min-h-screen">
       <NavBar />
@@ -83,7 +89,11 @@ const Generation = () => {
           ) : generatedImages.length > 0 ? (
             <div className="grid grid-cols-3 gap-4">
               {generatedImages.map((imageUrl, index) => (
-                <div key={index} className="aspect-[3/4] relative">
+                <div 
+                  key={index} 
+                  className="aspect-[3/4] relative cursor-pointer"
+                  onClick={() => handleImageClick(imageUrl)}
+                >
                   <Image 
                     src={imageUrl} 
                     alt={`Generated Kurta ${index + 1}`} 
