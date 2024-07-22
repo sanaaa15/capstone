@@ -5,14 +5,11 @@ import Image from 'next/image'
 import NavBar from '../components/NavBar'
 import Link from 'next/link'
 import JSZip from 'jszip';
-import { useRouter } from 'next/navigation'
 
 const Recommendation = () => {
   const [recommendations, setRecommendations] = useState<{prompt: string, imageUrl: string}[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [seeds, setSeeds] = useState<number[]>([])
   const fetchedRef = useRef(false)
-  const router = useRouter()
 
   useEffect(() => {
     if (fetchedRef.current) return
@@ -54,7 +51,10 @@ const Recommendation = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompts }),
+        body: JSON.stringify({ 
+          prompts: prompts,
+          is_customization: false
+        }),
       });
 
       if (response.ok) {
@@ -65,7 +65,6 @@ const Recommendation = () => {
           imageUrl: imageUrls[index] || '',
         }));
         setRecommendations(newRecommendations);
-        setSeeds(extractedSeeds);
         console.log('Generated images for prompts:', newRecommendations);
       } else {
         console.error('Failed to generate images for prompts');
@@ -75,23 +74,19 @@ const Recommendation = () => {
     }
   };
 
-  const extractImagesFromZip = async (zipBlob: Blob): Promise<[string[], number[]]> => {
+  const extractImagesFromZip = async (zipBlob: Blob): Promise<string[]> => {
     const zip = await JSZip.loadAsync(zipBlob);
     const imageUrls: string[] = [];
-    let seeds: number[] = [];
 
     for (const [filename, file] of Object.entries(zip.files)) {
       if (filename.endsWith('.png')) {
         const blob = await file.async('blob');
         const url = URL.createObjectURL(blob);
         imageUrls.push(url);
-      } else if (filename === 'seeds.json') {
-        const content = await file.async('text');
-        seeds = JSON.parse(content);
       }
     }
 
-    return [imageUrls, seeds];
+    return imageUrls;
   };
 
   const formatPrompts = (prompts: any[]): string[] => {
@@ -110,11 +105,6 @@ const Recommendation = () => {
     }).filter(prompt => prompt !== '')
   }
 
-  const handleImageClick = (index: number) => {
-    const selectedRecommendation = recommendations[index]
-    router.push(`/customization?prompt=${encodeURIComponent(selectedRecommendation.prompt)}&imageUrl=${encodeURIComponent(selectedRecommendation.imageUrl)}&seed=${seeds[index]}`)
-  }
-
   return (
     <div className="bg-beige min-h-screen">
       <NavBar />
@@ -130,15 +120,21 @@ const Recommendation = () => {
               style={{ transform: `translateX(-${currentIndex *20}%)` }}
             >
               {recommendations.map(({ prompt, imageUrl }, index) => (
-                <div key={index} className="w-[32%] flex-shrink-0 px-2 cursor-pointer" onClick={() => handleImageClick(index)}>
+                <div key={index} className="w-[32%] flex-shrink-0 px-2">
                   <div className="aspect-[95/100] relative">
-                    <Image
-                      src={imageUrl}
-                      alt={`Generated Design ${index + 1}`}
-                      fill
-                      style={{ objectFit: 'cover' }}
-                      className="rounded-lg border-2 border-navy"
-                    />
+                    {imageUrl ? (
+                      <Image
+                        src={imageUrl}
+                        alt={`Generated Design ${index + 1}`}
+                        fill
+                        style={{ objectFit: 'cover' }}
+                        className="rounded-lg border-2 border-navy"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 rounded-lg border-2 border-navy flex items-center justify-center">
+                        <p className="text-gray-500">Image not available</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

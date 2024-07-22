@@ -18,7 +18,7 @@ const Generation = () => {
       console.error('Error: No prompt provided');
       return;
     }
-
+  
     setIsLoading(true);
     try {
       const response = await fetch('/api/generateKurta', {
@@ -26,7 +26,10 @@ const Generation = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ attributes: prompt }),
+        body: JSON.stringify({ 
+          prompts: [prompt],
+          is_customization: false
+        }),
       });
 
       if (response.ok) {

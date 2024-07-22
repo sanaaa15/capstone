@@ -22,7 +22,11 @@ const KurtaDetails = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ attributes: customPrompt, seed: parseInt(seed || '0', 10) }),
+        body: JSON.stringify({
+          prompts: [customPrompt],
+          seed: parseInt(seed || '0', 10),
+          is_customization: true
+        }),
       });
 
       if (response.ok) {
