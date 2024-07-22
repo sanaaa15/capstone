@@ -5,13 +5,11 @@ import Image from 'next/image'
 import NavBar from '../components/NavBar'
 import Link from 'next/link'
 import JSZip from 'jszip';
-import { useRouter } from 'next/navigation'
 
 const Recommendation = () => {
   const [recommendations, setRecommendations] = useState<{prompt: string, imageUrl: string}[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const fetchedRef = useRef(false)
-  const router = useRouter()
 
   useEffect(() => {
     if (fetchedRef.current) return
@@ -53,12 +51,15 @@ const Recommendation = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompts }),
+        body: JSON.stringify({ 
+          prompts: prompts,
+          is_customization: false
+        }),
       });
 
       if (response.ok) {
         const zipBlob = await response.blob();
-        const imageUrls = await extractImagesFromZip(zipBlob);
+        const [imageUrls, extractedSeeds] = await extractImagesFromZip(zipBlob);
         const newRecommendations = prompts.map((prompt, index) => ({
           prompt,
           imageUrl: imageUrls[index] || '',
@@ -104,11 +105,6 @@ const Recommendation = () => {
     }).filter(prompt => prompt !== '')
   }
 
-  const handleImageClick = (index: number) => {
-    const selectedRecommendation = recommendations[index]
-    router.push(`/kurtaDetails?prompt=${encodeURIComponent(selectedRecommendation.prompt)}&imageUrl=${encodeURIComponent(selectedRecommendation.imageUrl)}`)
-  }
-
   return (
     <div className="bg-beige min-h-screen">
       <NavBar />
@@ -124,15 +120,21 @@ const Recommendation = () => {
               style={{ transform: `translateX(-${currentIndex *20}%)` }}
             >
               {recommendations.map(({ prompt, imageUrl }, index) => (
-                <div key={index} className="w-[32%] flex-shrink-0 px-2 cursor-pointer" onClick={() => handleImageClick(index)}>
+                <div key={index} className="w-[32%] flex-shrink-0 px-2">
                   <div className="aspect-[95/100] relative">
-                    <Image
-                      src={imageUrl}
-                      alt={`Generated Design ${index + 1}`}
-                      fill
-                      style={{ objectFit: 'cover' }}
-                      className="rounded-lg border-2 border-navy"
-                    />
+                    {imageUrl ? (
+                      <Image
+                        src={imageUrl}
+                        alt={`Generated Design ${index + 1}`}
+                        fill
+                        style={{ objectFit: 'cover' }}
+                        className="rounded-lg border-2 border-navy"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 rounded-lg border-2 border-navy flex items-center justify-center">
+                        <p className="text-gray-500">Image not available</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
