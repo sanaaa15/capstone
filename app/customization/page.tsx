@@ -5,6 +5,7 @@ import Image from 'next/image'
 import NavBar from '../components/NavBar'
 import { useSearchParams, useRouter } from 'next/navigation'
 import JSZip from 'jszip'
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const KurtaDetails = () => {
   const searchParams = useSearchParams()
@@ -15,15 +16,56 @@ const KurtaDetails = () => {
   const [customPrompt, setCustomPrompt] = useState('')
   const [modifiedImageUrl, setModifiedImageUrl] = useState(imageUrl)
 
+  const analyzePromptWithGemini = async (prompt: string) => {
+    const genAI = new GoogleGenerativeAI("AIzaSyCCemIFkG96pJ1wqKVScS0ygADpngsrBJc");
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+    const result = await model.generateContent(`I will provide you with two sentences. The first sentence is the original description of an item with various attributes. The second sentence is a change request specifying a modification to one of the attributes in the original description.
+
+    Your task is to update the original description based on the change request. Ensure that only the attribute specified in the change request is modified, while all other attributes remain unchanged.
+    
+    Provide the updated description in the same format as the original description.
+    
+    ### Example Scenarios:
+    
+    1. *Original Description:* "blue color, full sleeves, yellow polka dots"
+       *Change Request:* "change the color to red"
+       *Updated Description:* "red color, full sleeves, yellow polka dots"
+    
+    2. *Original Description:* "blue color, full sleeves, yellow polka dots"
+       *Change Request:* "make it sleeveless"
+       *Updated Description:* "blue color, sleeveless, yellow polka dots"
+    
+    3. *Original Description:* "green color, short sleeves, striped pattern"
+       *Change Request:* "change the pattern to checkered"
+       *Updated Description:* "green color, short sleeves, checkered pattern"
+    
+    Please update the following description based on the change request:
+    
+    "${prompt}"`);
+    const response = await result.response;
+    const text = response.text();
+    return text;
+  };
+
   const handleModify = async () => {
     try {
+      const originalDescription = prompt || '';
+      const changeRequest = customPrompt;
+      const geminiPrompt = `Original Description: "${originalDescription}"
+Change Request: "${changeRequest}"
+Updated Description:`;
+
+      const geminiAnalysis = await analyzePromptWithGemini(geminiPrompt);
+      console.log("Gemini analysis:", geminiAnalysis);
+
       const response = await fetch('/api/generateKurta', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prompts: [customPrompt],
+          prompts: [geminiAnalysis],
           seed: parseInt(seed || '0', 10),
           is_customization: true
         }),
