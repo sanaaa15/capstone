@@ -2,10 +2,12 @@
 
 import { useState, useRef, useEffect } from 'react';
 import NavBar from '../components/NavBar';
-import Image from 'next/image'
+import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function Measurements() {
+  const router = useRouter();
   const [isEditable, setIsEditable] = useState(false);
   const [height, setHeight] = useState('');
   const [measurements, setMeasurements] = useState({
@@ -144,6 +146,7 @@ export default function Measurements() {
     if (isEditable) {
       await saveMeasurements(measurements);
       setIsEditable(false);
+      router.push('/recommendation');
     } else {
       setIsEditable(true);
     }
@@ -151,8 +154,8 @@ export default function Measurements() {
 
   return (
     <div>
-    <NavBar />
-    <div className="max-w-6xl mx-auto p-2 bg-beige-200">
+      <NavBar />
+      <div className="max-w-6xl mx-auto p-2 bg-beige-200">
         <h1 className="text-center mb-8 text-blue text-3xl font-bold">
           We use state-of-the-art computer vision models to extract your measurements using only an image.
         </h1>
@@ -171,6 +174,9 @@ export default function Measurements() {
           >
             Upload image
           </button>
+          {image && (
+            <span className="text-green-600 font-medium py-2">Image uploaded!</span>
+          )}
           <div className="flex items-center">
             <label htmlFor="height" className="mr-2 text-navy font-medium">Height (cm):</label>
             <input
@@ -230,12 +236,13 @@ export default function Measurements() {
               </tbody>
             </table>
             <div className="flex justify-center">
-            <Link href="/recommendation">
-              <button className="px-20 py-3 bg-navy text-white rounded-full hover:bg-blue transition duration-300">
-                Next
+              <button 
+                onClick={toggleEditable}
+                className="px-20 py-3 bg-navy text-white rounded-full hover:bg-blue transition duration-300"
+              >
+                {isEditable ? 'Save and Continue' : 'Next'}
               </button>
-            </Link>
-          </div>
+            </div>
           </div>
         </div>
       </div>

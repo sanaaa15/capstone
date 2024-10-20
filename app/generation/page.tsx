@@ -5,6 +5,7 @@ import Image from 'next/image';
 import NavBar from '../components/NavBar';
 import JSZip from 'jszip';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const Generation = () => {
   const [prompt, setPrompt] = useState('');
@@ -102,19 +103,22 @@ const Generation = () => {
           ) : generatedImages.length > 0 ? (
             <div className="grid grid-cols-3 gap-4">
               {generatedImages.map((imageUrl, index) => (
-                <div 
-                  key={index} 
-                  className="aspect-[3/4] relative cursor-pointer"
-                  onClick={() => handleImageClick(imageUrl, index)}
+                <Link 
+                  key={index}
+                  href={`/kurtaDetails?prompt=${encodeURIComponent(prompt)}&imageUrl=${encodeURIComponent(imageUrl)}&seed=${seeds[index]}`}
                 >
-                  <Image 
-                    src={imageUrl} 
-                    alt={`Generated Kurta ${index + 1}`} 
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-cover rounded-md"
-                  />
-                </div>
+                  <div 
+                    className="aspect-[3/4] relative cursor-pointer"
+                  >
+                    <Image 
+                      src={imageUrl} 
+                      alt={`Generated Kurta ${index + 1}`} 
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover rounded-md"
+                    />
+                  </div>
+                </Link>
               ))}
             </div>
           ) : (

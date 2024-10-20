@@ -7,8 +7,9 @@ import Link from 'next/link'
 import JSZip from 'jszip';
 
 const Recommendation = () => {
-  const [recommendations, setRecommendations] = useState<{prompt: string, imageUrl: string}[]>([])
+  const [recommendations, setRecommendations] = useState<{prompt: string, imageUrl: string, seed: number}[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [isLoading, setIsLoading] = useState(false)
   const fetchedRef = useRef(false)
 
   useEffect(() => {
@@ -45,6 +46,7 @@ const Recommendation = () => {
   }
 
   const generateImages = async (prompts: string[]) => {
+    setIsLoading(true);
     try {
       const response = await fetch('/api/generateKurta', {
         method: 'POST',
@@ -56,13 +58,14 @@ const Recommendation = () => {
           is_customization: false
         }),
       });
-
+  
       if (response.ok) {
         const zipBlob = await response.blob();
         const [imageUrls, extractedSeeds] = await extractImagesFromZip(zipBlob);
         const newRecommendations = prompts.map((prompt, index) => ({
           prompt,
           imageUrl: imageUrls[index] || '',
+          seed: extractedSeeds[index]
         }));
         setRecommendations(newRecommendations);
         console.log('Generated images for prompts:', newRecommendations);
@@ -71,22 +74,28 @@ const Recommendation = () => {
       }
     } catch (error) {
       console.error('Error generating images:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const extractImagesFromZip = async (zipBlob: Blob): Promise<string[]> => {
+  const extractImagesFromZip = async (zipBlob: Blob): Promise<[string[], number[]]> => {
     const zip = await JSZip.loadAsync(zipBlob);
     const imageUrls: string[] = [];
+    const seeds: number[] = [];
 
     for (const [filename, file] of Object.entries(zip.files)) {
       if (filename.endsWith('.png')) {
         const blob = await file.async('blob');
         const url = URL.createObjectURL(blob);
         imageUrls.push(url);
+      } else if (filename === 'seeds.json') {
+        const content = await file.async('text');
+        seeds.push(...JSON.parse(content));
       }
     }
 
-    return imageUrls;
+    return [imageUrls, seeds];
   };
 
   const formatPrompts = (prompts: any[]): string[] => {
@@ -109,33 +118,39 @@ const Recommendation = () => {
     <div className="bg-beige min-h-screen">
       <NavBar />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-5xl font-bold mb-8 ml-[14%] mt-[2%] font-custom-2">
-          <span className="text-blue">CURATED</span>{' '}
-          <span className="text-white">DESIGNS FOR YOU!</span>
-        </h1>
-        {recommendations.length > 0 && (
+  <h1 className="text-5xl font-bold mb-8 ml-[14%] mt-[2%] font-custom-2">
+    <span className="text-blue">CURATED</span>{' '}
+    <span className="text-white">DESIGNS FOR YOU!</span>
+  </h1>
+  {isLoading ? (
+    <div className="flex justify-center items-center h-64">
+      <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-navy"></div>
+    </div>
+  ) : recommendations.length > 0 && (
           <div className="relative overflow-hidden">
             <div
               className="flex transition-transform duration-500 ease-in-out"
               style={{ transform: `translateX(-${currentIndex *20}%)` }}
             >
-              {recommendations.map(({ prompt, imageUrl }, index) => (
+              {recommendations.map(({ prompt, imageUrl, seed }, index) => (
                 <div key={index} className="w-[32%] flex-shrink-0 px-2">
-                  <div className="aspect-[95/100] relative">
-                    {imageUrl ? (
-                      <Image
-                        src={imageUrl}
-                        alt={`Generated Design ${index + 1}`}
-                        fill
-                        style={{ objectFit: 'cover' }}
-                        className="rounded-lg border-2 border-navy"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-200 rounded-lg border-2 border-navy flex items-center justify-center">
-                        <p className="text-gray-500">Image not available</p>
-                      </div>
-                    )}
-                  </div>
+                  <Link href={`/kurtaDetails?prompt=${encodeURIComponent(prompt)}&imageUrl=${encodeURIComponent(imageUrl)}&seed=${seed}`}>
+                    <div className="aspect-[95/100] relative cursor-pointer">
+                      {imageUrl && imageUrl !== 'b' ? (
+                        <Image
+                          src={imageUrl}
+                          alt={`Generated Design ${index + 1}`}
+                          fill
+                          style={{ objectFit: 'cover' }}
+                          className="rounded-lg border-2 border-navy"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-200 rounded-lg border-2 border-navy flex items-center justify-center">
+                          <p className="text-gray-500">Image not available</p>
+                        </div>
+                      )}
+                    </div>
+                  </Link>
                 </div>
               ))}
             </div>

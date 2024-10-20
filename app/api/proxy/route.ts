@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
       const formData = await request.formData();
       console.log('FormData received:', Object.fromEntries(formData));
   
-      const ngrokUrl = 'https://46a6-34-23-152-251.ngrok-free.app/measure';
+      const ngrokUrl = 'https://be13-35-231-130-141.ngrok-free.app/measure';
       console.log('Sending request to:', ngrokUrl);
   
       const response = await fetch(ngrokUrl, {
