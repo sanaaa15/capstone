@@ -17,8 +17,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       
-      <body className={inter.className}>
+      <body className={inter.className} >
         {/* <Logo /> */}
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"></link>
         {children}
       </body>
     </html>
