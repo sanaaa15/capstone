@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     let userId;
     try {
-      const decoded = jwt.verify(token, SECRET_KEY);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       userId = decoded.userId;
     } catch (error) {
       console.error('Invalid token:', error);
