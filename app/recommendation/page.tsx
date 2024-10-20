@@ -7,7 +7,7 @@ import Link from 'next/link'
 import JSZip from 'jszip';
 
 const Recommendation = () => {
-  const [recommendations, setRecommendations] = useState<{prompt: string, imageUrl: string}[]>([])
+  const [recommendations, setRecommendations] = useState<{prompt: string, imageUrl: string, seed: number}[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const fetchedRef = useRef(false)
@@ -132,23 +132,25 @@ const Recommendation = () => {
               className="flex transition-transform duration-500 ease-in-out"
               style={{ transform: `translateX(-${currentIndex *20}%)` }}
             >
-              {recommendations.map(({ prompt, imageUrl }, index) => (
+              {recommendations.map(({ prompt, imageUrl, seed }, index) => (
                 <div key={index} className="w-[32%] flex-shrink-0 px-2">
-                  <div className="aspect-[95/100] relative">
-                    {imageUrl && imageUrl !== 'b' ? (
-                      <Image
-                        src={imageUrl}
-                        alt={`Generated Design ${index + 1}`}
-                        fill
-                        style={{ objectFit: 'cover' }}
-                        className="rounded-lg border-2 border-navy"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-200 rounded-lg border-2 border-navy flex items-center justify-center">
-                        <p className="text-gray-500">Image not available</p>
-                      </div>
-                    )}
-                  </div>
+                  <Link href={`/kurtaDetails?prompt=${encodeURIComponent(prompt)}&imageUrl=${encodeURIComponent(imageUrl)}&seed=${seed}`}>
+                    <div className="aspect-[95/100] relative cursor-pointer">
+                      {imageUrl && imageUrl !== 'b' ? (
+                        <Image
+                          src={imageUrl}
+                          alt={`Generated Design ${index + 1}`}
+                          fill
+                          style={{ objectFit: 'cover' }}
+                          className="rounded-lg border-2 border-navy"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-200 rounded-lg border-2 border-navy flex items-center justify-center">
+                          <p className="text-gray-500">Image not available</p>
+                        </div>
+                      )}
+                    </div>
+                  </Link>
                 </div>
               ))}
             </div>
