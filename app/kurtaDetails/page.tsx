@@ -10,11 +10,24 @@ const KurtaDetails = () => {
   const router = useRouter()
   const prompt = searchParams.get('prompt')
   const imageUrl = searchParams.get('imageUrl')
+<<<<<<< HEAD
   const seed = searchParams.get('seed')
   const [quantity, setQuantity] = useState(1)
+=======
+  const [showModal, setShowModal] = useState(false)
+>>>>>>> 4e48ee705f681234924b13ac22fb351cf0873370
 
   const handleCustomize = () => {
     router.push(`/customization?prompt=${encodeURIComponent(prompt || '')}&imageUrl=${encodeURIComponent(imageUrl || '')}&seed=${seed}`)
+  }
+
+  const handleAddToCart = () => {
+    setShowModal(true)
+    setTimeout(() => setShowModal(false), 3000) // Hide modal after 3 seconds
+  }
+
+  const handleAddToWishlist = () => {
+    console.log('Added to wishlist')
   }
 
   return (
@@ -51,6 +64,7 @@ const KurtaDetails = () => {
           </div>
           <div className="w-1/2">
             <h2 className="text-2xl font-semibold mb-4 text-navy">Prompt: "{prompt}"</h2>
+<<<<<<< HEAD
             <p className="text-sm text-gray-600 mb-4">Seed: {seed}</p>
             <div className="bg-navy text-white p-4 rounded-lg mb-4">
               <h3 className="font-semibold mb-2">Price:</h3>
@@ -79,11 +93,49 @@ const KurtaDetails = () => {
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
+=======
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold">Price:</h3>
+              <p>Color: White, Red</p>
+              <p>Fabric: Cotton</p>
+              <p>Sleeves: Full Sleeves</p>
+              <p>Hemline: Straight</p>
+              <p>Print/Pattern: Floral</p>
+              <p>Length: Calf length</p>
+            </div>
+            <div className="flex items-center mb-4">
+              <button 
+                onClick={handleAddToCart}
+                className="bg-navy text-white py-2 px-4 rounded-lg hover:bg-blue-800 transition-colors duration-300 mr-4"
+              >
+                <span className="material-icons">shopping_cart</span>
+              </button>
+              <button 
+                onClick={handleAddToWishlist}
+                className="bg-navy text-white py-2 px-4 rounded-lg hover:bg-blue-800 transition-colors duration-300"
+              >
+                <span className="material-icons">favorite</span>
+>>>>>>> 4e48ee705f681234924b13ac22fb351cf0873370
               </button>
             </div>
           </div>
         </div>
       </div>
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg transform transition-transform duration-300 scale-100">
+            <div className="flex items-center mb-4">
+              <span className="material-icons text-green-500 mr-2">check_circle</span>
+              <h3 className="text-lg font-semibold">Added to cart</h3>
+            </div>
+            <Link href="/cart">
+              <button className="block bg-navy text-white py-2 px-4 rounded-lg text-center hover:bg-blue-800 transition-colors duration-300">
+                Go to Cart
+              </button>
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
