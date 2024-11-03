@@ -14,16 +14,50 @@ const KurtaDetails = () => {
   const seed = searchParams.get('seed')
   const [quantity, setQuantity] = useState(1)
   const [showModal, setShowModal] = useState(false)
-  const [isWishlistLoading, setIsWishlistLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [notification, setNotification] = useState({ show: false, message: '', type: '' })
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false)
 
   const handleCustomize = () => {
     router.push(`/customization?prompt=${encodeURIComponent(prompt || '')}&imageUrl=${encodeURIComponent(imageUrl || '')}&seed=${seed}`)
   }
 
-  const handleAddToCart = () => {
-    setShowModal(true)
-    setTimeout(() => setShowModal(false), 3000)
+  const handleAddToCart = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/addToCart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          description: prompt,
+          imageUrl: imageUrl,
+          quantity: quantity
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to add to cart')
+      }
+
+      setShowModal(true)
+      setTimeout(() => {
+        setShowModal(false)
+        router.push('/cart')
+      }, 1500)
+    } catch (error) {
+      setNotification({
+        show: true,
+        message: 'Failed to add to cart. Please try again.',
+        type: 'error'
+      })
+    } finally {
+      setIsLoading(false)
+      setTimeout(() => {
+        setNotification({ show: false, message: '', type: '' })
+      }, 3000)
+    }
   }
 
   const handleAddToWishlist = async () => {
@@ -142,6 +176,13 @@ const KurtaDetails = () => {
                 +
               </button>
               <button 
+              onClick={handleAddToCart}
+              disabled={isLoading}
+              className="w-full bg-navy text-white py-2 px-4 rounded-lg hover:bg-blue-800 transition-colors duration-300"
+            >
+              {isLoading ? 'Adding to Cart...' : 'Add to Cart'}
+            </button>
+              <button 
                 onClick={handleAddToWishlist}
                 disabled={isWishlistLoading}
                 className="ml-4 text-navy hover:scale-110 transition-transform"
@@ -165,23 +206,20 @@ const KurtaDetails = () => {
           </div>
         </div>
       </div>
-
-      {showModal && (
+{/* Success Modal */}
+{showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg transform transition-transform duration-300 scale-100">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
             <div className="flex items-center mb-4">
               <span className="material-icons text-green-500 mr-2">check_circle</span>
               <h3 className="text-lg font-semibold">Added to cart</h3>
             </div>
-            <Link href="/cart">
-              <button className="block bg-navy text-white py-2 px-4 rounded-lg text-center hover:bg-blue-800 transition-colors duration-300">
-                Go to Cart
-              </button>
-            </Link>
+            <p>Redirecting to cart...</p>
           </div>
         </div>
       )}
 
+      {/* Notification */}
       {notification.show && (
         <div 
           className={`fixed bottom-4 right-4 p-4 rounded-lg shadow-lg transition-opacity duration-300 ${

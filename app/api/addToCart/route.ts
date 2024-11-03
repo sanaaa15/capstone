@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   const session = driver.session();
 
   try {
-    const { description, imageUrl, quantity } = await request.json();
+    const { description, imageUrl, quantity = 1 } = await request.json();
 
     const cookieStore = cookies();
     const token = cookieStore.get('token')?.value;
@@ -27,19 +27,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Create Kurta node with description, image, and quantity
+    // Create Kurta node with description and image if it doesn't exist
     const result = await session.run(
       `
       MATCH (u:User {userId: $userId})
-      CREATE (k:Kurta {
+      MERGE (k:Kurta {
         kurtaId: apoc.create.uuid(),
         description: $description,
         imageUrl: $imageUrl,
         quantity: $quantity,
-        price: 1500,
         createdAt: datetime()
       })
       MERGE (u)-[r:CART]->(k)
+      SET k.quantity = $quantity
       RETURN k
       `,
       { userId, description, imageUrl, quantity }
