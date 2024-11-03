@@ -1,10 +1,19 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import NavBar from '../components/NavBar'
+
+interface KurtaAttributes {
+  sleeveLength: string;
+  color: string;
+  hemline: string;
+  neckline: string;
+  print: string;
+  sleeveStyle: string;
+}
 
 const KurtaDetails = () => {
   const searchParams = useSearchParams()
@@ -17,6 +26,58 @@ const KurtaDetails = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [notification, setNotification] = useState({ show: false, message: '', type: '' })
   const [isWishlistLoading, setIsWishlistLoading] = useState(false)
+  const [kurtaAttributes, setKurtaAttributes] = useState<KurtaAttributes | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(true);
+
+  useEffect(() => {
+    analyzeKurta();
+  }, [prompt, imageUrl]);
+
+  const blobToBase64 = async (blobUrl: string) => {
+    try {
+      const response = await fetch(blobUrl);
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error('Error converting blob to base64:', error);
+      throw error;
+    }
+  };
+
+  const analyzeKurta = async () => {
+    if (!prompt || !imageUrl) return;
+
+    try {
+      const base64Image = await blobToBase64(imageUrl);
+
+      const response = await fetch('/api/analyzeKurta', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt,
+          imageData: base64Image
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to analyze kurta');
+      }
+
+      const data = await response.json();
+      setKurtaAttributes(data.attributes);
+    } catch (error) {
+      console.error('Error analyzing kurta:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const handleCustomize = () => {
     router.push(`/customization?prompt=${encodeURIComponent(prompt || '')}&imageUrl=${encodeURIComponent(imageUrl || '')}&seed=${seed}`)
@@ -138,15 +199,21 @@ const KurtaDetails = () => {
             <h2 className="text-2xl font-semibold mb-4 text-navy">Prompt: "{prompt}"</h2>
             <p className="text-sm text-gray-600 mb-4">Seed: {seed}</p>
             <div className="bg-navy text-white p-4 rounded-lg mb-4">
-              <h3 className="font-semibold mb-2">Price:</h3>
-              <div className="grid grid-cols-2 gap-2">
-                <p>Color:</p><p>White, Red</p>
-                <p>Fabric:</p><p>Cotton</p>
-                <p>Sleeves:</p><p>Full Sleeves</p>
-                <p>Hemline:</p><p>Straight</p>
-                <p>Print/Pattern:</p><p>Floral</p>
-                <p>Length:</p><p>Calf length</p>
-              </div>
+              <h3 className="font-semibold mb-2">Kurta Details:</h3>
+              {isAnalyzing ? (
+                <p>Analyzing kurta details...</p>
+              ) : kurtaAttributes ? (
+                <div className="grid grid-cols-2 gap-2">
+                  <p>Sleeve Length:</p><p>{kurtaAttributes.sleeveLength}</p>
+                  <p>Color:</p><p>{kurtaAttributes.color}</p>
+                  <p>Hemline:</p><p>{kurtaAttributes.hemline}</p>
+                  <p>Neckline:</p><p>{kurtaAttributes.neckline}</p>
+                  <p>Print/Pattern:</p><p>{kurtaAttributes.print}</p>
+                  <p>Sleeve Style:</p><p>{kurtaAttributes.sleeveStyle}</p>
+                </div>
+              ) : (
+                <p>Could not analyze kurta details</p>
+              )}
             </div>
             <div className="mb-4">
               <p className="font-semibold mb-2">Select Fabric:</p>

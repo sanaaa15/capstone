@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import NavBar from '../components/NavBar'
 import ScrollingText from '../components/ScrollingText'
+import { useRouter } from 'next/navigation';
 
 interface CartItem {
   kurtaId: string;
@@ -12,17 +13,20 @@ interface CartItem {
   imageUrl: string;
   quantity: number;
   price: number;
+  comment: string; // New property for comments
 }
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const router = useRouter();
 
   useEffect(() => {
     fetchCartItems()
   }, [])
 
+  // Fetch cart items from the backend
   const fetchCartItems = async () => {
     try {
       const response = await fetch('/api/getCart')
@@ -39,9 +43,63 @@ const Cart = () => {
     }
   }
 
+  // Delete a cart item
+  const deleteCartItem = async (kurtaId: string) => {
+    try {
+      const response = await fetch(`/api/deleteCartItem`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ kurtaId }),
+      })
+      if (!response.ok) {
+        throw new Error('Failed to delete item')
+      }
+      setCartItems((prevItems) => prevItems.filter((item) => item.kurtaId !== kurtaId))
+    } catch (error) {
+      console.error('Error deleting item:', error)
+    }
+  }
+
+  // Update the comment for a cart item
+  const updateComment = async (kurtaId: string, comment: string) => {
+    try {
+      const response = await fetch(`/api/updateComment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ kurtaId, comment }),
+      })
+      if (!response.ok) {
+        throw new Error('Failed to update comment')
+      }
+      setCartItems((prevItems) =>
+        prevItems.map((item) =>
+          item.kurtaId === kurtaId ? { ...item, comment } : item
+        )
+      )
+    } catch (error) {
+      console.error('Error updating comment:', error)
+    }
+  }
+
+  // Calculate total price
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0)
   }
+
+  const handleCheckout = () => {
+    // Save cart items with comments to localStorage for the confirmation page
+    const orderDetails = cartItems.map(item => ({
+      ...item,
+      comment: item.comment || '',
+      total: (item.price * item.quantity)
+    }));
+    localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
+    router.push('/checkout');
+  };
 
   if (isLoading) {
     return <div className="text-center py-8">Loading...</div>
@@ -54,7 +112,7 @@ const Cart = () => {
   return (
     <div className="bg-beige min-h-screen">
       <NavBar />
-      <div className="container py-4">
+      <div className="container py-6">
         <ScrollingText text="YOUR CART" />
         {cartItems.length === 0 ? (
           <div className="text-center py-8">
@@ -87,8 +145,27 @@ const Cart = () => {
                             Qty: {item.quantity}
                           </label>
                         </div>
+                        {/* Comment input */}
+                        <div className="mt-2">
+                          <label htmlFor={`comment-${item.kurtaId}`} className="block">Comment:</label>
+                          <input
+                            type="text"
+                            id={`comment-${item.kurtaId}`}
+                            value={item.comment || ''}
+                            onChange={(e) => updateComment(item.kurtaId, e.target.value)}
+                            placeholder="Add a comment"
+                            className="border border-gray-300 rounded-lg p-2 mt-1"
+                          />
+                        </div>
                       </div>
                     </div>
+                    {/* Delete button */}
+                    <button
+                      onClick={() => deleteCartItem(item.kurtaId)}
+                      className="bg-red-500 text-white py-1 px-2 rounded-lg"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               ))}
@@ -105,7 +182,10 @@ const Cart = () => {
                   Total: ₹{(calculateTotal() * 1.18).toFixed(2)}
                 </p>
               </div>
-              <button className="w-full bg-white text-navy py-2 px-4 rounded-lg mt-4">
+              <button 
+                onClick={handleCheckout}
+                className="w-full bg-white text-navy py-2 px-4 rounded-lg mt-4 hover:bg-gray-100 transition-colors duration-300"
+              >
                 Proceed to Checkout
               </button>
             </div>
