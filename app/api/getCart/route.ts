@@ -5,12 +5,10 @@ import { cookies } from 'next/headers';
 
 const SECRET_KEY = process.env.JWT_SECRET;
 
-export async function POST(request: Request) {
+export async function GET() {
   const session = driver.session();
 
   try {
-    const { description, imageUrl } = await request.json();
-
     const cookieStore = cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -27,29 +25,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Create Kurta node with description and image
     const result = await session.run(
       `
-      MATCH (u:User {userId: $userId})
-      CREATE (k:Kurta {
-        kurtaId: apoc.create.uuid(),
-        description: $description,
-        imageUrl: $imageUrl,
-        createdAt: datetime()
-      })
-      MERGE (u)-[r:WISHLIST]->(k)
+      MATCH (u:User {userId: $userId})-[:CART]->(k:Kurta)
       RETURN k
+      ORDER BY k.createdAt DESC
       `,
-      { userId, description, imageUrl }
+      { userId }
     );
 
-    return NextResponse.json({ 
-      message: 'Added to wishlist successfully',
-      kurta: result.records[0].get('k').properties
-    });
+    const cartItems = result.records.map(record => record.get('k').properties);
+
+    return NextResponse.json({ cartItems });
   } catch (error) {
-    console.error('Error adding to wishlist:', error);
-    return NextResponse.json({ error: 'Error adding to wishlist' }, { status: 500 });
+    console.error('Error fetching cart items:', error);
+    return NextResponse.json({ error: 'Error fetching cart items' }, { status: 500 });
   } finally {
     await session.close();
   }

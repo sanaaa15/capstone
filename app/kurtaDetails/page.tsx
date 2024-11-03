@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import NavBar from '../components/NavBar'
-import { useSearchParams, useRouter } from 'next/navigation'
 
 const KurtaDetails = () => {
   const searchParams = useSearchParams()
@@ -12,20 +13,93 @@ const KurtaDetails = () => {
   const imageUrl = searchParams.get('imageUrl')
   const seed = searchParams.get('seed')
   const [quantity, setQuantity] = useState(1)
-
   const [showModal, setShowModal] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [notification, setNotification] = useState({ show: false, message: '', type: '' })
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false)
 
   const handleCustomize = () => {
     router.push(`/customization?prompt=${encodeURIComponent(prompt || '')}&imageUrl=${encodeURIComponent(imageUrl || '')}&seed=${seed}`)
   }
 
-  const handleAddToCart = () => {
-    setShowModal(true)
-    setTimeout(() => setShowModal(false), 3000) // Hide modal after 3 seconds
+  const handleAddToCart = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/addToCart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          description: prompt,
+          imageUrl: imageUrl,
+          quantity: quantity
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to add to cart')
+      }
+
+      setShowModal(true)
+      setTimeout(() => {
+        setShowModal(false)
+        router.push('/cart')
+      }, 1500)
+    } catch (error) {
+      setNotification({
+        show: true,
+        message: 'Failed to add to cart. Please try again.',
+        type: 'error'
+      })
+    } finally {
+      setIsLoading(false)
+      setTimeout(() => {
+        setNotification({ show: false, message: '', type: '' })
+      }, 3000)
+    }
   }
 
-  const handleAddToWishlist = () => {
-    console.log('Added to wishlist')
+  const handleAddToWishlist = async () => {
+    setIsWishlistLoading(true)
+    
+    try {
+      const response = await fetch('/api/addToWishlist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          description: prompt,
+          imageUrl: imageUrl
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to add to wishlist')
+      }
+
+      setNotification({
+        show: true,
+        message: 'Added to wishlist successfully! Redirecting...',
+        type: 'success'
+      })
+      
+      setTimeout(() => {
+        router.push('/wishlist')
+      }, 1500)
+    } catch (error) {
+      setNotification({
+        show: true,
+        message: 'Failed to add to wishlist. Please try again.',
+        type: 'error'
+      })
+    } finally {
+      setIsWishlistLoading(false)
+      setTimeout(() => {
+        setNotification({ show: false, message: '', type: '' })
+      }, 3000)
+    }
   }
 
   return (
@@ -83,31 +157,78 @@ const KurtaDetails = () => {
               </div>
             </div>
             <div className="flex items-center mb-4">
-              <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="bg-gray-200 px-3 py-1 rounded-l-lg">-</button>
-              <input type="number" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} className="w-12 text-center border-t border-b border-gray-200 py-1" />
-              <button onClick={() => setQuantity(quantity + 1)} className="bg-gray-200 px-3 py-1 rounded-r-lg">+</button>
-              <button className="ml-4 text-navy">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              <button 
+                onClick={() => setQuantity(Math.max(1, quantity - 1))} 
+                className="bg-gray-200 px-3 py-1 rounded-l-lg"
+              >
+                -
+              </button>
+              <input 
+                type="number" 
+                value={quantity} 
+                onChange={(e) => setQuantity(Number(e.target.value))} 
+                className="w-12 text-center border-t border-b border-gray-200 py-1" 
+              />
+              <button 
+                onClick={() => setQuantity(quantity + 1)} 
+                className="bg-gray-200 px-3 py-1 rounded-r-lg"
+              >
+                +
+              </button>
+              <button 
+              onClick={handleAddToCart}
+              disabled={isLoading}
+              className="w-full bg-navy text-white py-2 px-4 rounded-lg hover:bg-blue-800 transition-colors duration-300"
+            >
+              {isLoading ? 'Adding to Cart...' : 'Add to Cart'}
+            </button>
+              <button 
+                onClick={handleAddToWishlist}
+                disabled={isWishlistLoading}
+                className="ml-4 text-navy hover:scale-110 transition-transform"
+              >
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  className={`h-6 w-6 ${isWishlistLoading ? 'animate-pulse' : ''}`} 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+                  />
                 </svg>
               </button>
             </div>
           </div>
         </div>
       </div>
-      {showModal && (
+{/* Success Modal */}
+{showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg transform transition-transform duration-300 scale-100">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
             <div className="flex items-center mb-4">
               <span className="material-icons text-green-500 mr-2">check_circle</span>
               <h3 className="text-lg font-semibold">Added to cart</h3>
             </div>
-            <Link href="/cart">
-              <button className="block bg-navy text-white py-2 px-4 rounded-lg text-center hover:bg-blue-800 transition-colors duration-300">
-                Go to Cart
-              </button>
-            </Link>
+            <p>Redirecting to cart...</p>
           </div>
+        </div>
+      )}
+
+      {/* Notification */}
+      {notification.show && (
+        <div 
+          className={`fixed bottom-4 right-4 p-4 rounded-lg shadow-lg transition-opacity duration-300 ${
+            notification.type === 'success' 
+              ? 'bg-green-100 text-green-800 border border-green-200' 
+              : 'bg-red-100 text-red-800 border border-red-200'
+          }`}
+        >
+          {notification.message}
         </div>
       )}
     </div>

@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   const session = driver.session();
 
   try {
-    const { description, imageUrl } = await request.json();
+    const { description, imageUrl, quantity = 1 } = await request.json();
 
     const cookieStore = cookies();
     const token = cookieStore.get('token')?.value;
@@ -27,29 +27,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Create Kurta node with description and image
+    // Create Kurta node with description and image if it doesn't exist
     const result = await session.run(
       `
       MATCH (u:User {userId: $userId})
-      CREATE (k:Kurta {
+      MERGE (k:Kurta {
         kurtaId: apoc.create.uuid(),
         description: $description,
         imageUrl: $imageUrl,
+        quantity: $quantity,
         createdAt: datetime()
       })
-      MERGE (u)-[r:WISHLIST]->(k)
+      MERGE (u)-[r:CART]->(k)
+      SET k.quantity = $quantity
       RETURN k
       `,
-      { userId, description, imageUrl }
+      { userId, description, imageUrl, quantity }
     );
 
     return NextResponse.json({ 
-      message: 'Added to wishlist successfully',
+      message: 'Added to cart successfully',
       kurta: result.records[0].get('k').properties
     });
   } catch (error) {
-    console.error('Error adding to wishlist:', error);
-    return NextResponse.json({ error: 'Error adding to wishlist' }, { status: 500 });
+    console.error('Error adding to cart:', error);
+    return NextResponse.json({ error: 'Error adding to cart' }, { status: 500 });
   } finally {
     await session.close();
   }
