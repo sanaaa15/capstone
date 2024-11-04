@@ -86,6 +86,10 @@ const KurtaDetails = () => {
   const handleAddToCart = async () => {
     setIsLoading(true)
     try {
+      if (!kurtaAttributes) {
+        await analyzeKurta();
+      }
+
       const response = await fetch('/api/addToCart', {
         method: 'POST',
         headers: {
@@ -94,7 +98,9 @@ const KurtaDetails = () => {
         body: JSON.stringify({
           description: prompt,
           imageUrl: imageUrl,
-          quantity: quantity
+          quantity: quantity,
+          attributes: kurtaAttributes,
+          seed: seed
         }),
       })
 
