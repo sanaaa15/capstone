@@ -1,50 +1,101 @@
-import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { NextRequest, NextResponse } from 'next/server';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+// Initialize Gemini AI with your API key
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '');
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const { prompt, imageUrl } = await request.json();
+    const { imageData, prompt } = await req.json();
 
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    // Remove the data URL prefix to get just the base64 data
+    const base64Image = imageData.split(',')[1];
 
-    const analysisPrompt = `
-    Analyze this kurta description and identify the following attributes:
-    1. Sleeve Length (e.g., full, three-quarter, short)
-    2. Color
-    3. Hemline Style (e.g., straight, curved, asymmetric)
-    4. Neckline Style (e.g., round, V-neck, mandarin)
-    5. Print/Pattern (e.g., floral, geometric, solid)
-    6. Sleeve Style (e.g., regular, bell, puff)
+    // Convert base64 to Uint8Array
+    const imageBytes = Uint8Array.from(atob(base64Image), c => c.charCodeAt(0));
 
-    Kurta Description: "${prompt}"
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+    // Prepare the prompt for analysis
+    const analysisPrompt = `Analyze this kurta image and prompt ${prompt} then provide the following attributes:
+    - Sleeve Length (e.g., full, three-quarter, short, sleeveless)
+    - Color (pink, green, yellow, red, blue, black, white, purple, orange, brown, grey, etc.)
+    - Hemline (e.g., straight, asymmetrical, curved,flared)
+    - Neckline (e.g., round, V-neck, mandarin)
+    - Print/Pattern (e.g., solid, floral, geometric)
+    - Sleeve Style (e.g., regular, bell, fitted)
     
-    Please provide the analysis in a structured format.`;
+    Format the response as key-value pairs, one per line.`;
 
-    const result = await model.generateContent(analysisPrompt);
+    // Create the vision request
+    const result = await model.generateContent([
+      analysisPrompt,
+      {
+        inlineData: {
+          mimeType: 'image/jpeg',
+          data: base64Image
+        }
+      }
+    ]);
+
     const response = await result.response;
     const text = response.text();
 
-    // Parse the response into structured data
-    const attributes = {
-      sleeveLength: extractAttribute(text, "Sleeve Length"),
-      color: extractAttribute(text, "Color"),
-      hemline: extractAttribute(text, "Hemline"),
-      neckline: extractAttribute(text, "Neckline"),
-      print: extractAttribute(text, "Print/Pattern"),
-      sleeveStyle: extractAttribute(text, "Sleeve Style")
-    };
+    // Parse the response into structured attributes
+    const attributes = parseAttributesFromResponse(text);
 
-    return NextResponse.json({ attributes });
+    return NextResponse.json({
+      attributes,
+      success: true
+    });
+
   } catch (error) {
     console.error('Error analyzing kurta:', error);
-    return NextResponse.json({ error: 'Failed to analyze kurta' }, { status: 500 });
+    return NextResponse.json({
+      error: 'Failed to analyze kurta image',
+      success: false
+    }, { status: 500 });
   }
 }
 
-function extractAttribute(text: string, attribute: string): string {
-  const regex = new RegExp(`${attribute}:?\\s*([^\\n]+)`, 'i');
-  const match = text.match(regex);
-  return match ? match[1].trim() : '';
+function parseAttributesFromResponse(response: string): {
+  sleeveLength: string;
+  color: string;
+  hemline: string;
+  neckline: string;
+  print: string;
+  sleeveStyle: string;
+} {
+  // Initialize default values
+  const attributes = {
+    sleeveLength: '',
+    color: '',
+    hemline: '',
+    neckline: '',
+    print: '',
+    sleeveStyle: ''
+  };
+
+  // Split response into lines and extract attributes
+  const lines = response.split('\n');
+  for (const line of lines) {
+    const [key, value] = line.split(':').map(str => str.trim());
+    if (!key || !value) continue;
+
+    if (key.toLowerCase().includes('sleeve length')) {
+      attributes.sleeveLength = value;
+    } else if (key.toLowerCase().includes('color')) {
+      attributes.color = value;
+    } else if (key.toLowerCase().includes('hemline')) {
+      attributes.hemline = value;
+    } else if (key.toLowerCase().includes('neckline')) {
+      attributes.neckline = value;
+    } else if (key.toLowerCase().includes('print') || key.toLowerCase().includes('pattern')) {
+      attributes.print = value;
+    } else if (key.toLowerCase().includes('sleeve style')) {
+      attributes.sleeveStyle = value;
+    }
+  }
+
+  return attributes;
 }
