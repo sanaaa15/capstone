@@ -20,6 +20,7 @@
     "express-session": "^1.18.0",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
     "jszip": "^3.10.1",
     "kurta-gen-capstone": "file:",
     "mongoose": "^8.4.4",

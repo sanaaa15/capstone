@@ -17,13 +17,13 @@ export async function POST(req: NextRequest) {
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     // Prepare the prompt for analysis
-    const analysisPrompt = `Analyze this kurta image and prompt ${prompt} then provide the following attributes:
+    const analysisPrompt = `Analyze the kurta image and prompt ${prompt} then map the attributes from the prompt and image:
     - Sleeve Length (e.g., full, three-quarter, short, sleeveless)
     - Color (pink, green, yellow, red, blue, black, white, purple, orange, brown, grey, etc.)
     - Hemline (e.g., straight, asymmetrical, curved,flared)
     - Neckline (e.g., round, V-neck, mandarin)
-    - Print/Pattern (e.g., solid, floral, geometric)
-    - Sleeve Style (e.g., regular, bell, fitted)
+    - Print/Pattern (e.g., embellished,solid, floral, geometric)
+    - Sleeve Style (e.g., regular, bell, fitted, ruffles)
     
     Format the response as key-value pairs, one per line.`;
 
