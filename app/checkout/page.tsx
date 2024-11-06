@@ -3,14 +3,54 @@ import { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
 import NavBar from '../components/NavBar';
 
+interface CartItem {
+  kurtaId: string;
+  description: string;
+  imageUrl: string;
+  quantity: number;
+  price: number;
+  comment?: string;
+}
+
+interface KurtaDetail {
+  description?: string;
+  quantity?: number;
+  sleeve_length?: string;
+  color?: string;
+  hemline?: string;
+  neckline?: string;
+  print?: string;
+  sleeve_style?: string;
+}
+
 const CheckoutPage = () => {
-  const [orderDetails, setOrderDetails] = useState([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [kurtaDetails, setKurtaDetails] = useState<KurtaDetail[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const details = JSON.parse(localStorage.getItem('orderDetails') || '[]');
-    setOrderDetails(details);
-    // Clear cart after order is placed
-    localStorage.removeItem('cart');
+    const fetchData = async () => {
+      try {
+        const [cartResponse, kurtaResponse] = await Promise.all([
+          fetch('/api/getCart'),
+          fetch('/api/getKurtaDetails')
+        ]);
+
+        if (cartResponse.ok && kurtaResponse.ok) {
+          const cartData = await cartResponse.json();
+          const kurtaData = await kurtaResponse.json();
+          
+          setCartItems(cartData.cartItems);
+          setKurtaDetails(kurtaData.kurtaDetails || []);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const loadImage = async (url: string): Promise<string> => {
@@ -34,63 +74,76 @@ const CheckoutPage = () => {
     try {
       const doc = new jsPDF();
       let yPosition = 20;
-
-      // Add title
-      doc.setFontSize(20);
-      doc.text('Order Details', 105, yPosition, { align: 'center' });
-      yPosition += 20;
-
       let totalOrderAmount = 0;
 
-      // Add items
-      for (const [index, item] of orderDetails.entries()) {
-        // Add item number
-        doc.setFontSize(16);
-        doc.text(`Item ${index + 1}`, 20, yPosition);
-        yPosition += 15;
+      // Add title
+      doc.setFontSize(24);
+      doc.text('Order Details', 105, yPosition, { align: 'center' });
+      yPosition += 30;
 
+      // Process each cart item
+      for (let i = 0; i < cartItems.length; i++) {
+        const item = cartItems[i];
+        const details = kurtaDetails[i] || {};
+
+        // Add Kurta number header
+        doc.setFontSize(20);
+        doc.text(`KURTA ${i + 1}`, 20, yPosition);
+        yPosition += 20;
+
+        // Add image
         try {
-          // Convert image URL to base64
           const imageData = await loadImage(item.imageUrl);
           doc.addImage(imageData, 'JPEG', 20, yPosition, 50, 60);
           yPosition += 70;
         } catch (error) {
           console.error('Error loading image:', error);
-          // Continue with the rest of the details even if image fails
-          yPosition += 10;
         }
 
-        // Add text details
+        // Add prompt
         doc.setFontSize(12);
-        doc.text(`Price: ₹${item.price}`, 20, yPosition);
+        doc.text('PROMPT:', 20, yPosition);
         yPosition += 10;
-        doc.text(`Quantity: ${item.quantity}`, 20, yPosition);
+        const promptLines = doc.splitTextToSize(item.description, 170);
+        doc.text(promptLines, 20, yPosition);
+        yPosition += (promptLines.length * 7) + 10;
+
+        // Add kurta details
+        doc.setFontSize(14);
+        doc.text('KURTA DETAILS:', 20, yPosition);
         yPosition += 10;
 
-        // Add description with word wrap
-        const descLines = doc.splitTextToSize(`Description: ${item.description}`, 170);
-        doc.text(descLines, 20, yPosition);
-        yPosition += (descLines.length * 7);
+        doc.setFontSize(12);
+        const detailsText = [
+          `Sleeve Length: ${details.sleeve_length || 'N/A'}`,
+          `Color: ${details.color || 'N/A'}`,
+          `Hemline: ${details.hemline || 'N/A'}`,
+          `Neckline: ${details.neckline || 'N/A'}`,
+          `Print/Pattern: ${details.print || 'N/A'}`,
+          `Sleeve Style: ${details.sleeve_style || 'N/A'}`
+        ];
 
-        // Add comments if any
-        if (item.comment) {
-          const commentLines = doc.splitTextToSize(`Comments: ${item.comment}`, 170);
-          doc.text(commentLines, 20, yPosition);
-          yPosition += (commentLines.length * 7);
-        }
+        detailsText.forEach(text => {
+          doc.text(text, 20, yPosition);
+          yPosition += 8;
+        });
 
-        totalOrderAmount += item.price * item.quantity;
+        // Add price
+        doc.setFontSize(14);
+        doc.text(`PRICE: ₹${item.price}`, 20, yPosition);
         yPosition += 20;
 
+        totalOrderAmount += item.price * (item.quantity || 1);
+
         // Add a page break if there's not enough space for the next item
-        if (yPosition > 250 && index < orderDetails.length - 1) {
+        if (yPosition > 250 && i < cartItems.length - 1) {
           doc.addPage();
           yPosition = 20;
         }
       }
 
-      // Add total amount
-      doc.setFontSize(14);
+      // Add total amount at the end
+      doc.setFontSize(16);
       doc.text(`Total Amount: ₹${totalOrderAmount.toFixed(2)}`, 20, yPosition);
 
       // Save the PDF
