@@ -84,13 +84,31 @@ const KurtaDetails = () => {
   }
 
   const handleAddToCart = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       if (!kurtaAttributes) {
         await analyzeKurta();
       }
 
-      const response = await fetch('/api/addToCart', {
+      // First add kurta details
+      const kurtaDetailsResponse = await fetch('/api/addKurtaDetails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          description: prompt,
+          quantity: quantity,
+          attributes: kurtaAttributes,
+        }),
+      });
+
+      if (!kurtaDetailsResponse.ok) {
+        throw new Error('Failed to add kurta details');
+      }
+
+      // Then add to cart with all necessary details
+      const cartResponse = await fetch('/api/addToCart', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -99,33 +117,32 @@ const KurtaDetails = () => {
           description: prompt,
           imageUrl: imageUrl,
           quantity: quantity,
-          attributes: kurtaAttributes,
-          seed: seed
+          price: 1999, // Add your default price or make it dynamic
         }),
-      })
+      });
 
-      if (!response.ok) {
-        throw new Error('Failed to add to cart')
+      if (!cartResponse.ok) {
+        throw new Error('Failed to add to cart');
       }
 
-      setShowModal(true)
+      setShowModal(true);
       setTimeout(() => {
-        setShowModal(false)
-        router.push('/cart')
-      }, 1500)
+        setShowModal(false);
+        router.push('/cart');
+      }, 1500);
     } catch (error) {
       setNotification({
         show: true,
         message: 'Failed to add to cart. Please try again.',
-        type: 'error'
-      })
+        type: 'error',
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
       setTimeout(() => {
-        setNotification({ show: false, message: '', type: '' })
-      }, 3000)
+        setNotification({ show: false, message: '', type: '' });
+      }, 3000);
     }
-  }
+  };
 
   const handleAddToWishlist = async () => {
     setIsWishlistLoading(true)

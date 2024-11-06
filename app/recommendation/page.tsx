@@ -4,23 +4,10 @@ import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import NavBar from '../components/NavBar'
 import Link from 'next/link'
-import JSZip from 'jszip'
-
-const CACHE_KEY = 'recommendations_cache'
-const CACHE_EXPIRY_DAYS = 7
-
-interface CachedRecommendations {
-  data: {
-    prompt: string
-    imageUrl: string
-    seed: number
-    imageData?: string  // base64 string
-  }[]
-  timestamp: number
-}
+import JSZip from 'jszip';
 
 const Recommendation = () => {
-  const [recommendations, setRecommendations] = useState<{prompt: string, imageUrl: string, seed: number, imageData?: string}[]>([])
+  const [recommendations, setRecommendations] = useState<{prompt: string, imageUrl: string, seed: number}[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const fetchedRef = useRef(false)
@@ -28,52 +15,16 @@ const Recommendation = () => {
   useEffect(() => {
     if (fetchedRef.current) return
     fetchedRef.current = true
-    loadRecommendations()
+    fetchRecommendations()
   }, [])
 
   useEffect(() => {
     if (recommendations.length === 0) return
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % recommendations.length)
-    }, 3000)
+    }, 3000) // Change image every 3 seconds
     return () => clearInterval(interval)
   }, [recommendations])
-
-  const blobToBase64 = (blob: Blob): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onloadend = () => resolve(reader.result as string)
-      reader.onerror = reject
-      reader.readAsDataURL(blob)
-    })
-  }
-
-  const loadRecommendations = async () => {
-    const cachedData = localStorage.getItem(CACHE_KEY)
-    
-    if (cachedData) {
-      const parsed: CachedRecommendations = JSON.parse(cachedData)
-      const now = Date.now()
-      const daysSinceCache = (now - parsed.timestamp) / (1000 * 60 * 60 * 24)
-
-      if (daysSinceCache < CACHE_EXPIRY_DAYS) {
-        console.log('Loading recommendations from cache')
-        setRecommendations(parsed.data)
-        return
-      }
-    }
-
-    // If no cache or cache expired, fetch new recommendations
-    await fetchRecommendations()
-  }
-
-  const saveToCache = async (recommendations: {prompt: string, imageUrl: string, seed: number, imageData?: string}[]) => {
-    const cacheData: CachedRecommendations = {
-      data: recommendations,
-      timestamp: Date.now()
-    }
-    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData))
-  }
 
   const fetchRecommendations = async () => {
     try {
@@ -95,7 +46,7 @@ const Recommendation = () => {
   }
 
   const generateImages = async (prompts: string[]) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const response = await fetch('/api/generateKurta', {
         method: 'POST',
@@ -106,52 +57,46 @@ const Recommendation = () => {
           prompts: prompts,
           is_customization: false
         }),
-      })
+      });
   
       if (response.ok) {
-        const zipBlob = await response.blob()
-        const [imageUrls, extractedSeeds, imageDataArray] = await extractImagesFromZip(zipBlob)
+        const zipBlob = await response.blob();
+        const [imageUrls, extractedSeeds] = await extractImagesFromZip(zipBlob);
         const newRecommendations = prompts.map((prompt, index) => ({
           prompt,
           imageUrl: imageUrls[index] || '',
-          seed: extractedSeeds[index],
-          imageData: imageDataArray[index]
-        }))
-        setRecommendations(newRecommendations)
-        // Save the new recommendations to cache
-        await saveToCache(newRecommendations)
-        console.log('Generated images for prompts:', newRecommendations)
+          seed: extractedSeeds[index]
+        }));
+        setRecommendations(newRecommendations);
+        console.log('Generated images for prompts:', newRecommendations);
       } else {
-        console.error('Failed to generate images for prompts')
+        console.error('Failed to generate images for prompts');
       }
     } catch (error) {
-      console.error('Error generating images:', error)
+      console.error('Error generating images:', error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
-  const extractImagesFromZip = async (zipBlob: Blob): Promise<[string[], number[], string[]]> => {
-    const zip = await JSZip.loadAsync(zipBlob)
-    const imageUrls: string[] = []
-    const imageDataArray: string[] = []
-    const seeds: number[] = []
+  const extractImagesFromZip = async (zipBlob: Blob): Promise<[string[], number[]]> => {
+    const zip = await JSZip.loadAsync(zipBlob);
+    const imageUrls: string[] = [];
+    const seeds: number[] = [];
 
     for (const [filename, file] of Object.entries(zip.files)) {
       if (filename.endsWith('.png')) {
-        const blob = await file.async('blob')
-        const url = URL.createObjectURL(blob)
-        const base64Data = await blobToBase64(blob)
-        imageUrls.push(url)
-        imageDataArray.push(base64Data)
+        const blob = await file.async('blob');
+        const url = URL.createObjectURL(blob);
+        imageUrls.push(url);
       } else if (filename === 'seeds.json') {
-        const content = await file.async('text')
-        seeds.push(...JSON.parse(content))
+        const content = await file.async('text');
+        seeds.push(...JSON.parse(content));
       }
     }
 
-    return [imageUrls, seeds, imageDataArray]
-  }
+    return [imageUrls, seeds];
+  };
 
   const formatPrompts = (prompts: any[]): string[] => {
     const shuffled = [...prompts].sort(() => 0.5 - Math.random())
@@ -173,27 +118,27 @@ const Recommendation = () => {
     <div className="bg-beige min-h-screen">
       <NavBar />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-5xl font-bold mb-8 ml-[14%] mt-[2%] font-custom-2">
-          <span className="text-blue">CURATED</span>{' '}
-          <span className="text-white">DESIGNS FOR YOU!</span>
-        </h1>
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-navy"></div>
-          </div>
-        ) : recommendations.length > 0 && (
+  <h1 className="text-5xl font-bold mb-8 ml-[14%] mt-[2%] font-custom-2">
+    <span className="text-blue">CURATED</span>{' '}
+    <span className="text-white">DESIGNS FOR YOU!</span>
+  </h1>
+  {isLoading ? (
+    <div className="flex justify-center items-center h-64">
+      <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-navy"></div>
+    </div>
+  ) : recommendations.length > 0 && (
           <div className="relative overflow-hidden">
             <div
               className="flex transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${currentIndex * 20}%)` }}
+              style={{ transform: `translateX(-${currentIndex *20}%)` }}
             >
-              {recommendations.map(({ prompt, imageData, imageUrl, seed }, index) => (
+              {recommendations.map(({ prompt, imageUrl, seed }, index) => (
                 <div key={index} className="w-[32%] flex-shrink-0 px-2">
-                  <Link href={`/kurtaDetails?prompt=${encodeURIComponent(prompt)}&imageUrl=${encodeURIComponent(imageData || imageUrl)}&seed=${seed}`}>
+                  <Link href={`/kurtaDetails?prompt=${encodeURIComponent(prompt)}&imageUrl=${encodeURIComponent(imageUrl)}&seed=${seed}`}>
                     <div className="aspect-[95/100] relative cursor-pointer">
-                      {(imageData || imageUrl) && imageUrl !== 'b' ? (
+                      {imageUrl && imageUrl !== 'b' ? (
                         <Image
-                          src={imageData || imageUrl}
+                          src={imageUrl}
                           alt={`Generated Design ${index + 1}`}
                           fill
                           style={{ objectFit: 'cover' }}
