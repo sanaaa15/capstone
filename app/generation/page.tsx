@@ -90,7 +90,7 @@ const Generation = () => {
           />
           <button
             onClick={handleGenerate}
-            className="bg-navy text-white px-6 py-3 rounded-r-md"
+            className="bg-navy text-white px-6 py-3 rounded-r-md shadow-[0_4px_10px_rgba(0,0,0,0.2)]"
             disabled={isLoading}
           >
             {isLoading ? 'Generating...' : 'Generate'}
@@ -101,14 +101,14 @@ const Generation = () => {
           {isLoading ? (
             <p className="text-white text-center">Generating images...</p>
           ) : generatedImages.length > 0 ? (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-8">
               {generatedImages.map((imageUrl, index) => (
                 <Link 
                   key={index}
                   href={`/kurtaDetails?prompt=${encodeURIComponent(prompt)}&imageUrl=${encodeURIComponent(imageUrl)}&seed=${seeds[index]}`}
                 >
                   <div 
-                    className="aspect-[3/4] relative cursor-pointer"
+                    className="aspect-[3/4] relative cursor-pointer transform hover:scale-105 transition-transform duration-300 shadow-[0_4px_10px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_15px_rgba(0,0,0,0.3)]"
                   >
                     <Image 
                       src={imageUrl} 
