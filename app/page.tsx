@@ -13,7 +13,8 @@ const HomePage = () => {
 
   // Check login status based on token presence
   useEffect(() => {
-    setIsLoggedIn(!cookies.token);
+    console.log('Cookie value:', cookies.token); // Debug log
+    setIsLoggedIn(!!cookies.token);
   }, [cookies.token]);
 
   // Function to add ref to the array
