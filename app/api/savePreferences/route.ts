@@ -5,6 +5,10 @@ import { cookies } from 'next/headers';
 
 const SECRET_KEY = process.env.JWT_SECRET;
 
+interface JwtPayloadWithUserId extends jwt.JwtPayload {
+  userId: string | number;
+}
+
 export async function POST(request: Request) {
   const session = driver.session();
 
@@ -21,7 +25,10 @@ export async function POST(request: Request) {
 
     let userId;
     try {
-      const decoded = jwt.verify(token, SECRET_KEY);
+      if (!process.env.SECRET_KEY) {
+        throw new Error('SECRET_KEY is not defined');
+      }
+      const decoded = jwt.verify(token, process.env.SECRET_KEY) as JwtPayloadWithUserId;
       userId = decoded.userId;
     } catch (error) {
       console.error('Invalid token:', error);

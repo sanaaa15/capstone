@@ -265,7 +265,7 @@ const KurtaDetails = () => {
           <div className="w-[80%]">
             <h2 className="text-2xl font-semibold mb-2 text-navy">Prompt: "{prompt}"</h2>
             <p className="text-sm text-gray-600 mb-2">Seed: {seed}</p>
-            <div className="bg-navy text-white p-8 rounded-2xl mb-4">
+            <div className="bg-navy text-white p-4 rounded-2xl mb-4">
               {/* Price Display */}
               <div className="mb-4 border-b border-gray-600 pb-4">
                 <p className="text-2xl font-bold text-white text-center">

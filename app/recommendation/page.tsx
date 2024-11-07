@@ -110,21 +110,20 @@ const Recommendation = () => {
         { value: prompt.necklineStyle, type: 'neckline' }
       ].filter(attr => attr.value);
 
-      // Always include color and 0-2 random additional attributes
       const colorAttribute = allAttributes.find(attr => attr.type === 'color');
       const otherAttributes = allAttributes.filter(attr => attr.type !== 'color');
-      const numAdditionalAttrs = Math.floor(Math.random() * 3); // 0, 1, or 2
+      const numAdditionalAttrs = Math.floor(Math.random() * 3);
       const selectedOtherAttrs = otherAttributes
         .sort(() => 0.5 - Math.random())
         .slice(0, numAdditionalAttrs);
 
-      const selectedAttributes = [colorAttribute, ...selectedOtherAttrs].filter(Boolean);
+      const selectedAttributes = [colorAttribute, ...selectedOtherAttrs].filter((attr): attr is { value: string, type: string } => attr !== undefined);
 
       return selectedAttributes
         .map(attr => {
           switch (attr.type) {
             case 'color': return `${attr.value} color`;
-            case 'sleeves': return `${attr.value} sleeves`;
+            case 'sleeves': return `${attr.value}`;
             case 'hemline': return `${attr.value} hemline`;
             case 'neckline': return `${attr.value} neckline`;
             default: return attr.value;
