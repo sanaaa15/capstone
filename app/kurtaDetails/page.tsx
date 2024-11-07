@@ -244,9 +244,9 @@ const KurtaDetails = () => {
             />
           </div>
         </div>
-        <div className="w-[75%] flex pl-12">
+        <div className="w-[80%] flex pl-10">
           <div className="w-[70%] pr-10">
-            <div className="relative aspect-[2/3] mb-4">
+            <div className="relative aspect-[3/4] mb-4">
               <Image
                 src={imageUrl || '/kurta-1.png'}
                 alt="Selected Design"
@@ -257,17 +257,17 @@ const KurtaDetails = () => {
             </div>
             <button 
               onClick={handleCustomize}
-              className="w-full bg-navy text-white mt-4 py-2 px-4 rounded-lg hover:bg-blue-800 transition-colors duration-300"
+              className="w-full bg-navy text-white mt-1 py-2 px-4 rounded-lg hover:bg-blue-800 transition-colors duration-300"
             >
               Customize
             </button>
           </div>
           <div className="w-[80%]">
-            <h2 className="text-2xl font-semibold mb-2 text-navy">Prompt: "{prompt}"</h2>
+            <h2 className="text-lg font-bold mb-1 text-navy">Prompt: "{prompt}"</h2>
             <p className="text-sm text-gray-600 mb-2">Seed: {seed}</p>
-            <div className="bg-navy text-white p-4 rounded-2xl mb-4">
+            <div className="bg-navy text-white p-4 rounded-2xl mb-2">
               {/* Price Display */}
-              <div className="mb-4 border-b border-gray-600 pb-4">
+              <div className="mb-2 border-b border-gray-600 pb-4">
                 <p className="text-2xl font-bold text-white text-center">
                   Price: ₹{kurtaAttributes?.price ? kurtaAttributes.price.toFixed(2) : 'N/A'}
                 </p>
@@ -361,7 +361,7 @@ const KurtaDetails = () => {
                 +
               </button>
             </div>
-            <div className="flex space-x-4">
+            <div className="flex items-center space-x-4">
               <button 
                 onClick={handleAddToCart}
                 disabled={isLoading}
@@ -372,7 +372,7 @@ const KurtaDetails = () => {
               <button 
                 onClick={handleAddToWishlist}
                 disabled={isWishlistLoading}
-                className="flex-shrink-0 ml-4 text-navy hover:scale-110 transition-transform"
+                className="text-navy hover:scale-110 transition-transform"
               >
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
