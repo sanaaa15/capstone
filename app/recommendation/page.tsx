@@ -22,7 +22,7 @@ const Recommendation = () => {
     if (recommendations.length === 0) return
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % recommendations.length)
-    }, 3000) // Change image every 3 seconds
+    }, 3000)
     return () => clearInterval(interval)
   }, [recommendations])
 
@@ -103,34 +103,54 @@ const Recommendation = () => {
     const selected = shuffled.slice(0, 5)
 
     return selected.map(prompt => {
-      const attributes = []
-      if (prompt.color) attributes.push(`${prompt.color} color`)
-      if (prompt.fabric) attributes.push(`${prompt.fabric} fabric`)
-      if (prompt.designStyle) attributes.push(`${prompt.designStyle} design`)
-      if (prompt.sleeveStyle) attributes.push(`${prompt.sleeveStyle} sleeves`)
-      if (prompt.hemlineStyle) attributes.push(`${prompt.hemlineStyle} hemline`)
-      
-      return attributes.join(', ')
-    }).filter(prompt => prompt !== '')
+      const allAttributes = [
+        { value: prompt.color, type: 'color' },
+        { value: prompt.sleeveStyle, type: 'sleeves' },
+        { value: prompt.hemlineStyle, type: 'hemline' },
+        { value: prompt.necklineStyle, type: 'neckline' }
+      ].filter(attr => attr.value);
+
+      // Always include color and 0-2 random additional attributes
+      const colorAttribute = allAttributes.find(attr => attr.type === 'color');
+      const otherAttributes = allAttributes.filter(attr => attr.type !== 'color');
+      const numAdditionalAttrs = Math.floor(Math.random() * 3); // 0, 1, or 2
+      const selectedOtherAttrs = otherAttributes
+        .sort(() => 0.5 - Math.random())
+        .slice(0, numAdditionalAttrs);
+
+      const selectedAttributes = [colorAttribute, ...selectedOtherAttrs].filter(Boolean);
+
+      return selectedAttributes
+        .map(attr => {
+          switch (attr.type) {
+            case 'color': return `${attr.value} color`;
+            case 'sleeves': return `${attr.value} sleeves`;
+            case 'hemline': return `${attr.value} hemline`;
+            case 'neckline': return `${attr.value} neckline`;
+            default: return attr.value;
+          }
+        })
+        .join(', ');
+    }).filter(prompt => prompt !== '');
   }
 
   return (
     <div className="bg-beige min-h-screen">
       <NavBar />
       <div className="container mx-auto px-4 py-8">
-  <h1 className="text-5xl font-bold mb-8 ml-[14%] mt-[2%] font-custom-2">
-    <span className="text-blue">CURATED</span>{' '}
-    <span className="text-white">DESIGNS FOR YOU!</span>
-  </h1>
-  {isLoading ? (
-    <div className="flex justify-center items-center h-64">
-      <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-navy"></div>
-    </div>
-  ) : recommendations.length > 0 && (
+        <h1 className="text-5xl font-bold mb-8 ml-[14%] mt-[2%] font-custom-2">
+          <span className="text-blue">CURATED</span>{' '}
+          <span className="text-white">DESIGNS FOR YOU!</span>
+        </h1>
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-navy"></div>
+          </div>
+        ) : recommendations.length > 0 && (
           <div className="relative overflow-hidden">
             <div
               className="flex transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${currentIndex *20}%)` }}
+              style={{ transform: `translateX(-${currentIndex * 20}%)` }}
             >
               {recommendations.map(({ prompt, imageUrl, seed }, index) => (
                 <div key={index} className="w-[32%] flex-shrink-0 px-2">
