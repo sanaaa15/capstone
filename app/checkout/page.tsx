@@ -13,14 +13,26 @@ interface CartItem {
 }
 
 interface KurtaDetail {
-  description?: string;
-  quantity?: number;
   sleeve_length?: string;
   color?: string;
   hemline?: string;
   neckline?: string;
   print?: string;
   sleeve_style?: string;
+  fabric?: string;
+}
+
+interface Measurements {
+  height?: number | null;
+  shoulder_width?: number | null;
+  arm_length?: number | null;
+  neck?: number | null;
+  wrist?: number | null;
+  chest?: number | null;
+  waist?: number | null;
+  hip?: number | null;
+  thigh?: number | null;
+  ankle?: number | null;
 }
 
 const CheckoutPage = () => {
@@ -76,10 +88,25 @@ const CheckoutPage = () => {
       let yPosition = 20;
       let totalOrderAmount = 0;
 
-      // Add title
+      // Add Order ID and Title
+      const orderId = `ORD-${Date.now()}`;
       doc.setFontSize(24);
       doc.text('Order Details', 105, yPosition, { align: 'center' });
-      yPosition += 30;
+      yPosition += 15;
+      doc.setFontSize(14);
+      doc.text(`Order ID: ${orderId}`, 20, yPosition);
+      yPosition += 20;
+
+      // Fetch measurements with type assertion
+      const measurementsResponse = await fetch('/api/saveMeasurements', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      let measurements: Measurements = {};
+      if (measurementsResponse.ok) {
+        measurements = await measurementsResponse.json() as Measurements;
+      }
 
       // Process each cart item
       for (let i = 0; i < cartItems.length; i++) {
@@ -102,7 +129,7 @@ const CheckoutPage = () => {
 
         // Add prompt
         doc.setFontSize(12);
-        doc.text('PROMPT:', 20, yPosition);
+        doc.text('DESCRIPTION:', 20, yPosition);
         yPosition += 10;
         const promptLines = doc.splitTextToSize(item.description, 170);
         doc.text(promptLines, 20, yPosition);
@@ -120,7 +147,8 @@ const CheckoutPage = () => {
           `Hemline: ${details.hemline || 'N/A'}`,
           `Neckline: ${details.neckline || 'N/A'}`,
           `Print/Pattern: ${details.print || 'N/A'}`,
-          `Sleeve Style: ${details.sleeve_style || 'N/A'}`
+          `Sleeve Style: ${details.sleeve_style || 'N/A'}`,
+          `Fabric: ${details.fabric || 'N/A'}`
         ];
 
         detailsText.forEach(text => {
@@ -135,19 +163,52 @@ const CheckoutPage = () => {
 
         totalOrderAmount += item.price * (item.quantity || 1);
 
-        // Add a page break if there's not enough space for the next item
+        // Add a page break if there's not enough space
         if (yPosition > 250 && i < cartItems.length - 1) {
           doc.addPage();
           yPosition = 20;
         }
       }
 
-      // Add total amount at the end
+      // Add measurements section
+      doc.addPage();
+      yPosition = 20;
+      doc.setFontSize(20);
+      doc.text('MEASUREMENTS', 105, yPosition, { align: 'center' });
+      yPosition += 20;
+
+      const measurementDetails = [
+        `Height: ${measurements?.height ?? 'N/A'} cm`,
+        `Shoulder Width: ${measurements?.shoulder_width ?? 'N/A'} cm`,
+        `Arm Length: ${measurements?.arm_length ?? 'N/A'} cm`,
+        `Neck: ${measurements?.neck ?? 'N/A'} cm`,
+        `Wrist: ${measurements?.wrist ?? 'N/A'} cm`,
+        `Chest: ${measurements?.chest ?? 'N/A'} cm`,
+        `Waist: ${measurements?.waist ?? 'N/A'} cm`,
+        `Hip: ${measurements?.hip ?? 'N/A'} cm`,
+        `Thigh: ${measurements?.thigh ?? 'N/A'} cm`,
+        `Ankle: ${measurements?.ankle ?? 'N/A'} cm`
+      ];
+
+      measurementDetails.forEach(text => {
+        doc.text(text, 20, yPosition);
+        yPosition += 10;
+      });
+
+      // Add total amount with tax
+      const tax = totalOrderAmount * 0.18; // 18% GST
+      const totalWithTax = totalOrderAmount + tax;
+
+      yPosition += 20;
       doc.setFontSize(16);
-      doc.text(`Total Amount: ₹${totalOrderAmount.toFixed(2)}`, 20, yPosition);
+      doc.text(`Subtotal: ₹${totalOrderAmount.toFixed(2)}`, 20, yPosition);
+      yPosition += 10;
+      doc.text(`Tax (18%): ₹${tax.toFixed(2)}`, 20, yPosition);
+      yPosition += 10;
+      doc.text(`Total Amount (inc. tax): ₹${totalWithTax.toFixed(2)}`, 20, yPosition);
 
       // Save the PDF
-      doc.save('order_details.pdf');
+      doc.save(`order_${orderId}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Failed to generate PDF. Please try again.');
