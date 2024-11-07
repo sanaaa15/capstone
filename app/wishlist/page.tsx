@@ -73,8 +73,9 @@ const Wishlist = () => {
     return (
         <div className="bg-beige min-h-screen">
             <NavBar />
+            <ScrollingText text="YOUR WISHLIST" />
             <div className="container py-4">
-                <ScrollingText text="YOUR WISHLIST" className="text-4xl font-bold tracking-widest text-navy" />
+                
                 {wishlistItems.length === 0 ? (
                     <div className="text-center py-8">
                         <p className="text-lg text-gray-600">Your wishlist is empty</p>
