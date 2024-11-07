@@ -25,10 +25,10 @@ export async function POST(request: Request) {
 
     let userId;
     try {
-      if (!process.env.SECRET_KEY) {
+      if (!SECRET_KEY) {
         throw new Error('SECRET_KEY is not defined');
       }
-      const decoded = jwt.verify(token, process.env.SECRET_KEY) as JwtPayloadWithUserId;
+      const decoded = jwt.verify(token, SECRET_KEY) as JwtPayloadWithUserId;
       userId = decoded.userId;
     } catch (error) {
       console.error('Invalid token:', error);

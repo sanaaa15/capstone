@@ -30,9 +30,9 @@ export async function POST(request: Request) {
       `
       MATCH (u:User {userId: $userId})
       MATCH (u)-[:HAS_PREFERENCES]->(p:Preferences)
-      MATCH (u)-[:SIMILAR_TO]->(similar_user:User)
-      MATCH (similar_user)-[:BUYS|WISHLIST|CART]->(k:Kurta)
-      MATCH (u)-[:BUYS|WISHLIST|CART]->(z:Kurta)
+      OPTIONAL MATCH (u)-[:SIMILAR_TO]->(similar_user:User)
+      OPTIONAL MATCH (similar_user)-[:BUYS|WISHLIST|CART]->(k:Kurta)
+      OPTIONAL MATCH (u)-[:BUYS|WISHLIST|CART]->(z:Kurta)
 
       WITH u, 
            collect(DISTINCT z.color) AS user_colors,
