@@ -1,3 +1,4 @@
+// /recommendation/page.tsx
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
@@ -34,9 +35,15 @@ const Recommendation = () => {
 
       if (response.ok) {
         const data = await response.json()
-        const formattedPrompts = formatPrompts(data.prompts)
-        console.log('Formatted prompts:', formattedPrompts)
-        await generateImages(formattedPrompts)
+        if (data.prompts[0]?.imageUrl) {
+          // If we received recommendations with images, use them directly
+          setRecommendations(data.prompts)
+        } else {
+          // Otherwise, generate new images
+          const formattedPrompts = formatPrompts(data.prompts)
+          console.log('Formatted prompts:', formattedPrompts)
+          await generateImages(formattedPrompts)
+        }
       } else {
         console.error('Error fetching recommendations:', response.statusText)
       }
@@ -67,6 +74,10 @@ const Recommendation = () => {
           imageUrl: imageUrls[index] || '',
           seed: extractedSeeds[index]
         }));
+        
+        // Save the recommendations to MySQL
+        await saveRecommendations(newRecommendations);
+        
         setRecommendations(newRecommendations);
         console.log('Generated images for prompts:', newRecommendations);
       } else {
@@ -76,6 +87,24 @@ const Recommendation = () => {
       console.error('Error generating images:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const saveRecommendations = async (recommendations: {prompt: string, imageUrl: string, seed: number}[]) => {
+    try {
+      const response = await fetch('/api/saveRecommendations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ recommendations }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save recommendations');
+      }
+    } catch (error) {
+      console.error('Error saving recommendations:', error);
     }
   };
 
@@ -110,10 +139,9 @@ const Recommendation = () => {
         { value: prompt.necklineStyle, type: 'neckline' }
       ].filter(attr => attr.value);
 
-      // Always include color and 0-2 random additional attributes
       const colorAttribute = allAttributes.find(attr => attr.type === 'color');
       const otherAttributes = allAttributes.filter(attr => attr.type !== 'color');
-      const numAdditionalAttrs = Math.floor(Math.random() * 3); // 0, 1, or 2
+      const numAdditionalAttrs = Math.floor(Math.random() * 3);
       const selectedOtherAttrs = otherAttributes
         .sort(() => 0.5 - Math.random())
         .slice(0, numAdditionalAttrs);
@@ -124,9 +152,9 @@ const Recommendation = () => {
         .map(attr => {
           switch (attr.type) {
             case 'color': return `${attr.value} color`;
-            case 'sleeves': return `${attr.value} sleeves`;
+            case 'sleeves': return `${attr.value}`;
             case 'hemline': return `${attr.value} hemline`;
-            case 'neckline': return `${attr.value} neckline`;
+            case 'neckline': return `${attr.value}`;
             default: return attr.value;
           }
         })
