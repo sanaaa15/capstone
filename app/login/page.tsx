@@ -22,7 +22,7 @@ export default function Login() {
     if (response.ok) {
       const data = await response.json();
       localStorage.setItem('token', data.token);  // Store the token
-      router.push('/');
+      router.push('/recommendation');
     } else {
       alert('Login failed');
     }

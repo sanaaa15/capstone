@@ -28,6 +28,29 @@ const questions = [
   },
 ];
 
+const colorMapping = {
+  "Neutral (Beige, Cream, White)": [
+    "Beige", "Cream", "White", "Gray", "Tan", "Brown", 
+    "Khaki", "Nude", "Camel Brown", "Taupe", "Off White", "Coffee Brown"
+  ],
+  "Bright (Red, Yellow, Orange)": [
+    "Red", "Yellow", "Orange", "Pink", "Lime Green", 
+    "Fluorescent Green", "Gold", "Mustard", "Peach", "Coral", "Bronze"
+  ],
+  "Pastel (Light Blue, Mint Green, Lavender)": [
+    "Light Blue", "Mint Green", "Lavender", "Peach", "Soft Pink", 
+    "Mauve", "Sea Green", "Champagne", "Turquoise Blue"
+  ],
+  "Dark (Navy Blue, Maroon, Black)": [
+    "Navy Blue", "Maroon", "Black", "Dark Gray", "Charcoal", 
+    "Burgundy", "Teal", "Magenta", "Fuchsia", "Violet", "Purple"
+  ],
+  "Metallic and Assorted": [
+    "Silver", "Gold", "Rose Gold", "Assorted", "Multi"
+  ],
+};
+
+
 function Preference() {
   const router = useRouter();
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -51,26 +74,32 @@ function Preference() {
   };
 
   const savePreferences = async () => {
+    // Expand color preferences for question 2
+    const expandedPreferences = selectedOptions.map((selections, questionIndex) => {
+      if (questionIndex === 1) { // Assuming Q2 is the color palette question
+        return selections.flatMap(selection => colorMapping[selection] || [selection]);
+      }
+      return selections;
+    });
+
     try {
       const response = await fetch('/api/savePreferences', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ preferences: selectedOptions }),
+        body: JSON.stringify({ preferences: expandedPreferences }),
         credentials: 'include', // This is important for including cookies
       });
-  
+
       if (response.ok) {
         router.push('/measurements');
       } else {
         const errorData = await response.json();
         console.error('Failed to save preferences:', errorData.error);
-        // Optionally, add user feedback here
       }
     } catch (error) {
       console.error('Error saving preferences:', error);
-      // Optionally, add user feedback here
     }
   };
 
@@ -84,51 +113,51 @@ function Preference() {
         <NavBarHome fontColor="text-beige" bgColor="bg-navy" />
       </div>
       <div className="flex my-10">
-      <div className="bg-beige absolute left-0 p-4 w-[45%] h-[70%]" style={{ backgroundImage: "url('/pref-pattern.jpg')", backgroundSize: 'cover' }}>
-      </div>
-      <div className="ml-[40%] w-[70%] flex flex-col items-center">
-        <div className="text-white text-center mb-10 w-[70%]">
-          <p style={{ fontSize: '120%' }}>We'd love to uncover your style: from fabric to color, design flair to fit preference, and the occasions that inspire your wardrobe. Share your preferences and let's craft a kurta that truly reflects you!</p>
+        <div className="bg-beige absolute left-0 p-4 w-[45%] h-[70%]" style={{ backgroundImage: "url('/pref-pattern.jpg')", backgroundSize: 'cover' }}>
         </div>
-        <div
-          key={currentQuestion}
-          className="bg-beige text-navy p-10 rounded-lg shadow-lg transition-transform transform scale-100"
-          style={{ width: '500px', animation: 'fadeIn 1s' }}
-        >
-          <h2 className="text-2xl font-bold mb-4">
-            {questions[currentQuestion].question}
-          </h2>
-          <div className="space-y-2">
-            {questions[currentQuestion].options.map((option, index) => (
-              <button
-                key={index}
-                className={`block w-full py-2 px-4 rounded-md transition-colors ${
-                  selectedOptions[currentQuestion].includes(option) ? 'bg-blue text-white' : 'bg-navy text-beige'
-                } hover:bg-blue`}
-                onClick={() => handleOptionToggle(currentQuestion, option)}
-              >
-                {option}
-              </button>
-            ))}
+        <div className="ml-[40%] w-[70%] flex flex-col items-center">
+          <div className="text-white text-center mb-10 w-[70%]">
+            <p style={{ fontSize: '120%' }}>We'd love to uncover your style: from fabric to color, design flair to fit preference, and the occasions that inspire your wardrobe. Share your preferences and let's craft a kurta that truly reflects you!</p>
           </div>
-        
-          <div className="mt-4 text-right">
-            {currentQuestion < questions.length - 1 ? (
-              <button
-                onClick={handleNext}
-                className="py-2 px-4 bg-navy text-beige rounded-md hover:bg-blue transition-colors"
-              >
-                Next
-              </button>
-            ) : (
-              <button
-                onClick={handleStartDesigning}
-                className="py-2 px-4 bg-navy text-beige rounded-md hover:bg-blue transition-colors"
-              >
-                Start Designing
-              </button>
-            )}
-              </div>
+          <div
+            key={currentQuestion}
+            className="bg-beige text-navy p-10 rounded-lg shadow-lg transition-transform transform scale-100"
+            style={{ width: '500px', animation: 'fadeIn 1s' }}
+          >
+            <h2 className="text-2xl font-bold mb-4">
+              {questions[currentQuestion].question}
+            </h2>
+            <div className="space-y-2">
+              {questions[currentQuestion].options.map((option, index) => (
+                <button
+                  key={index}
+                  className={`block w-full py-2 px-4 rounded-md transition-colors ${
+                    selectedOptions[currentQuestion].includes(option) ? 'bg-blue text-white' : 'bg-navy text-beige'
+                  } hover:bg-blue`}
+                  onClick={() => handleOptionToggle(currentQuestion, option)}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          
+            <div className="mt-4 text-right">
+              {currentQuestion < questions.length - 1 ? (
+                <button
+                  onClick={handleNext}
+                  className="py-2 px-4 bg-navy text-beige rounded-md hover:bg-blue transition-colors"
+                >
+                  Next
+                </button>
+              ) : (
+                <button
+                  onClick={handleStartDesigning}
+                  className="py-2 px-4 bg-navy text-beige rounded-md hover:bg-blue transition-colors"
+                >
+                  Start Designing
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -147,6 +176,5 @@ function Preference() {
     </div>
   );
 }
-
 
 export default withAuth(Preference);
