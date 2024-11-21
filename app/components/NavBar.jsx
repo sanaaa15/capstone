@@ -1,10 +1,11 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Logo from './Logo';
 
 const NavBar = ({ fontColor = 'text-navy', bgColor = 'bg-beige' }) => {
+  const router = useRouter();
   const [isProfileOpen, setProfileOpen] = useState(false);
   const [username, setUsername] = useState('User');
 
@@ -31,6 +32,33 @@ const NavBar = ({ fontColor = 'text-navy', bgColor = 'bg-beige' }) => {
   // Toggle dropdown menu
   const toggleProfileMenu = () => {
     setProfileOpen(!isProfileOpen);
+  };
+
+  // Logout functionality
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Clear any local storage or cookies if needed
+        localStorage.removeItem('token');
+        
+        // Redirect to homepage
+        router.push('/');
+      } else {
+        // Handle logout error
+        console.error('Logout failed');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
@@ -76,6 +104,13 @@ const NavBar = ({ fontColor = 'text-navy', bgColor = 'bg-beige' }) => {
                 <Link href="/profile">
                   <p className="cursor-pointer hover:bg-blue-700 p-2 rounded">Edit Profile</p>
                 </Link>
+                {/* New Logout Button */}
+                <button 
+                  onClick={handleLogout}
+                  className="w-full text-left cursor-pointer hover:bg-blue-700 p-2 rounded mt-2"
+                >
+                  Logout
+                </button>
               </div>
             )}
           </li>
