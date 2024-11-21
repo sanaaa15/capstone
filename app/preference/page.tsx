@@ -44,10 +44,7 @@ const colorMapping = {
   "Dark (Navy Blue, Maroon, Black)": [
     "Navy Blue", "Maroon", "Black", "Dark Gray", "Charcoal", 
     "Burgundy", "Teal", "Magenta", "Fuchsia", "Violet", "Purple"
-  ],
-  "Metallic and Assorted": [
-    "Silver", "Gold", "Rose Gold", "Assorted", "Multi"
-  ],
+  ]
 };
 
 
