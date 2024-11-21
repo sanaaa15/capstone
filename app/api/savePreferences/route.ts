@@ -56,19 +56,23 @@ export async function POST(request: Request) {
       }
     );
 
-    // Check if the graph exists
+    // First, delete existing SIMILAR_TO relationships
+    await session.run(
+      'MATCH ()-[r:SIMILAR_TO]-() DELETE r'
+    );
+
+    // Check if the graph exists and drop it if it does
     const graphExistsResult = await session.run(
       'CALL gds.graph.exists("kurta_graph") YIELD exists RETURN exists'
     );
 
     const graphExists = graphExistsResult.records[0].get('exists');
 
-    // Drop the existing graph if it exists
     if (graphExists) {
       await session.run('CALL gds.graph.drop("kurta_graph")');
     }
 
-    // Create the graph
+    // Create new graph projection
     await session.run(
       'CALL gds.graph.project(' +
       '"kurta_graph", ' +
@@ -81,10 +85,10 @@ export async function POST(request: Request) {
       '})'
     );
 
-    // Generate embeddings using FastRP (renamed mutateProperty to "new_embedding")
+    // Generate embeddings using FastRP (keeping 'embedding')
     await session.run(
       'CALL gds.fastRP.mutate("kurta_graph", { ' +
-      'mutateProperty: "new_embedding", ' +  // Changed to "new_embedding"
+      'mutateProperty: "embedding", ' +  // 'embedding' used
       'embeddingDimension: 128, ' +
       'randomSeed: 42 ' +
       '})'
@@ -95,12 +99,15 @@ export async function POST(request: Request) {
       'CALL gds.knn.write("kurta_graph", { ' +
       'nodeLabels: ["User"], ' +
       'relationshipTypes: ["BUYS", "WISHLIST", "CART"], ' +
-      'nodeProperties: ["new_embedding"], ' +  // Use "new_embedding"
+      'nodeProperties: ["embedding"], ' +
       'writeRelationshipType: "SIMILAR_TO", ' +
       'writeProperty: "similarity", ' +
       'topK: 4, ' +
-      'concurrency: 1, ' +
-      'randomSeed: 42 ' +
+      'sampleRate: 1.0, ' +
+      'deltaThreshold: 0.0, ' +
+      'maxIterations: 10, ' +
+      'randomSeed: 42, ' +
+      'concurrency: 1 ' +
       '})'
     );
 
