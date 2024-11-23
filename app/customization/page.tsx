@@ -21,7 +21,7 @@ export default function CustomizationPage() {
   const [modifiedPrompt, setModifiedPrompt] = useState(prompt)
 
   const analyzePromptWithGemini = async (prompt: string) => {
-    const genAI = new GoogleGenerativeAI("AIzaSyCCemIFkG96pJ1wqKVScS0ygADpngsrBJc")
+    const genAI = new GoogleGenerativeAI("AIzaSyAwlzBhNLrEGJeaGzYtHxIWGojM3L2pOgQ")
     const model = genAI.getGenerativeModel({ model: "gemini-pro" })
 
     const result = await model.generateContent(`I will provide you with two sentences. The first sentence is the original description of an item with various attributes. The second sentence is a change request specifying a modification to one of the attributes in the original description.
