@@ -13,7 +13,16 @@ interface KurtaAttributes {
   neckline: string;
   print: string;
   sleeveStyle: string;
+  fabric: string;
+  price: number;
 }
+
+const capitalizeFirstLetter = (string: string) => {
+  if (!string) return '';
+  return string.split(' ').map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+  ).join(' ');
+};
 
 const KurtaDetails = () => {
   const searchParams = useSearchParams()
@@ -28,6 +37,8 @@ const KurtaDetails = () => {
   const [isWishlistLoading, setIsWishlistLoading] = useState(false)
   const [kurtaAttributes, setKurtaAttributes] = useState<KurtaAttributes | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(true);
+  const [selectedFabric, setSelectedFabric] = useState<string>('');
+  const [kurtaPrice, setKurtaPrice] = useState<string | null>(null);
 
   useEffect(() => {
     analyzeKurta();
@@ -71,7 +82,13 @@ const KurtaDetails = () => {
       }
 
       const data = await response.json();
-      setKurtaAttributes(data.attributes);
+      const attributesWithPrice: KurtaAttributes = {
+        ...data.attributes,
+        price: parseFloat(data.attributes.price) || Math.floor(Math.random() * (3000 - 1000 + 1)) + 1000
+      };
+      setKurtaAttributes(attributesWithPrice);
+      console.log('Kurta attributes:', attributesWithPrice);
+
     } catch (error) {
       console.error('Error analyzing kurta:', error);
     } finally {
@@ -86,11 +103,34 @@ const KurtaDetails = () => {
   const handleAddToCart = async () => {
     setIsLoading(true);
     try {
-      if (!kurtaAttributes) {
-        await analyzeKurta();
+      if (!selectedFabric) {
+        setNotification({
+          show: true,
+          message: 'Please select a fabric before adding to cart',
+          type: 'error'
+        });
+        return;
       }
 
-      // First add kurta details
+      if (!kurtaAttributes?.price) {
+        setNotification({
+          show: true,
+          message: 'Price information is missing',
+          type: 'error'
+        });
+        return;
+      }
+
+      // Update kurtaAttributes with selected fabric
+      const updatedAttributes = {
+        ...kurtaAttributes,
+        fabric: selectedFabric,
+        price: kurtaAttributes.price
+      };
+
+      console.log('Sending to addKurtaDetails:', updatedAttributes); // Debug log
+
+      // First add kurta details with fabric and price
       const kurtaDetailsResponse = await fetch('/api/addKurtaDetails', {
         method: 'POST',
         headers: {
@@ -99,7 +139,9 @@ const KurtaDetails = () => {
         body: JSON.stringify({
           description: prompt,
           quantity: quantity,
-          attributes: kurtaAttributes,
+          attributes: updatedAttributes,
+          fabric: selectedFabric,
+          price: kurtaAttributes.price
         }),
       });
 
@@ -117,7 +159,8 @@ const KurtaDetails = () => {
           description: prompt,
           imageUrl: imageUrl,
           quantity: quantity,
-          price: 1999, // Add your default price or make it dynamic
+          price: kurtaAttributes.price,
+          fabric: selectedFabric,
         }),
       });
 
@@ -131,6 +174,7 @@ const KurtaDetails = () => {
         router.push('/cart');
       }, 1500);
     } catch (error) {
+      console.error('Error in handleAddToCart:', error); // Debug log
       setNotification({
         show: true,
         message: 'Failed to add to cart. Please try again.',
@@ -200,39 +244,75 @@ const KurtaDetails = () => {
             />
           </div>
         </div>
-        <div className="w-3/4 flex px-8">
-          <div className="w-1/2 pr-8">
+        <div className="w-[80%] flex pl-10">
+          <div className="w-[70%] pr-10">
             <div className="relative aspect-[3/4] mb-4">
               <Image
                 src={imageUrl || '/kurta-1.png'}
                 alt="Selected Design"
                 layout="fill"
                 objectFit="cover"
-                className="rounded-lg"
+                className="rounded-lg transition-transform duration-500 transform hover:scale-105"
               />
             </div>
             <button 
               onClick={handleCustomize}
-              className="w-full bg-navy text-white py-2 px-4 rounded-lg hover:bg-blue-800 transition-colors duration-300"
+              className="w-full bg-navy text-white mt-1 py-2 px-4 rounded-lg hover:bg-blue-800 transition-colors duration-300"
             >
               Customize
             </button>
           </div>
-          <div className="w-1/2">
-            <h2 className="text-2xl font-semibold mb-4 text-navy">Prompt: "{prompt}"</h2>
-            <p className="text-sm text-gray-600 mb-4">Seed: {seed}</p>
-            <div className="bg-navy text-white p-4 rounded-lg mb-4">
-              <h3 className="font-semibold mb-2">Kurta Details:</h3>
+          <div className="w-[80%]">
+            <h2 className="text-lg font-bold mb-1 text-navy">Prompt: "{prompt}"</h2>
+            <p className="text-sm text-gray-600 mb-2">Seed: {seed}</p>
+            <div className="bg-navy text-white p-4 rounded-2xl mb-2">
+              {/* Price Display */}
+              <div className="mb-2 border-b border-gray-600 pb-4">
+                <p className="text-2xl font-bold text-white text-center">
+                  Price: ₹{kurtaAttributes?.price ? kurtaAttributes.price.toFixed(2) : 'N/A'}
+                </p>
+              </div>
+
+              {/* Attributes List */}
               {isAnalyzing ? (
                 <p>Analyzing kurta details...</p>
               ) : kurtaAttributes ? (
-                <div className="grid grid-cols-2 gap-2">
-                  <p>Sleeve Length:</p><p>{kurtaAttributes.sleeveLength}</p>
-                  <p>Color:</p><p>{kurtaAttributes.color}</p>
-                  <p>Hemline:</p><p>{kurtaAttributes.hemline}</p>
-                  <p>Neckline:</p><p>{kurtaAttributes.neckline}</p>
-                  <p>Print/Pattern:</p><p>{kurtaAttributes.print}</p>
-                  <p>Sleeve Style:</p><p>{kurtaAttributes.sleeveStyle}</p>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                  {/* Left Column */}
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-gray-300 text-md">Color:</p>
+                      <p className="font-semibold text-md text-white">{capitalizeFirstLetter(kurtaAttributes.color)}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-300 text-md">Fabric:</p>
+                      <p className="font-semibold text-md text-white">{capitalizeFirstLetter(selectedFabric || 'Not selected')}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-300 text-md">Sleeves:</p>
+                      <p className="font-semibold text-md text-white">{capitalizeFirstLetter(kurtaAttributes.sleeveLength)}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-300 text-md">Sleeve Style:</p>
+                      <p className="font-semibold text-md text-white">{capitalizeFirstLetter(kurtaAttributes.sleeveStyle)}</p>
+                    </div>
+                  </div>
+
+                  {/* Right Column */}
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-gray-300 text-md">Hemline:</p>
+                      <p className="font-semibold text-md text-white">{capitalizeFirstLetter(kurtaAttributes.hemline)}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-300 text-md">Print/Pattern:</p>
+                      <p className="font-semibold text-md text-white">{capitalizeFirstLetter(kurtaAttributes.print)}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-300 text-md">Neckline:</p>
+                      <p className="font-semibold text-md text-white">{capitalizeFirstLetter(kurtaAttributes.neckline)}</p>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <p>Could not analyze kurta details</p>
@@ -240,54 +320,71 @@ const KurtaDetails = () => {
             </div>
             <div className="mb-4">
               <p className="font-semibold mb-2">Select Fabric:</p>
-              <div className="flex space-x-2">
-                <div className="w-8 h-8 bg-navy rounded-full"></div>
-                <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
-                <div className="w-8 h-8 bg-beige-200 rounded-full"></div>
+              <div className="flex space-x-4">
+                <div 
+                  className="w-10 h-10 rounded-full overflow-hidden cursor-pointer transform transition-transform hover:scale-105 border-1 border-black shadow-lg" 
+                  onClick={() => setSelectedFabric('Linen')}
+                  title="Linen"
+                >
+                  <Image src="/linen.png" alt="Linen" width={48} height={48} className={`rounded-full ${selectedFabric === 'Linen' ? 'border-2 border-navy' : ''}`} />
+                </div>
+                <div 
+                  className="w-10 h-10 rounded-full overflow-hidden cursor-pointer transform transition-transform hover:scale-105 border-1 border-black shadow-lg" 
+                  onClick={() => setSelectedFabric('Silk')}
+                  title="Silk"
+                >
+                  <Image src="/silk.png" alt="Silk" width={48} height={48} className={`rounded-full ${selectedFabric === 'Silk' ? 'border-2 border-navy' : ''}`} />
+                </div>
+                <div 
+                  className="w-10 h-10 rounded-full overflow-hidden cursor-pointer transform transition-transform hover:scale-105 border-1 border-black shadow-lg" 
+                  onClick={() => setSelectedFabric('Cotton')}
+                  title="Cotton"
+                >
+                  <Image src="/cotton.png" alt="Cotton" width={48} height={48} className={`rounded-full ${selectedFabric === 'Cotton' ? 'border-2 border-navy' : ''}`} />
+                </div>
               </div>
             </div>
-            <div className="flex items-center mb-4">
+            <div className="flex items-center mb-3">
               <button 
                 onClick={() => setQuantity(Math.max(1, quantity - 1))} 
-                className="bg-gray-200 px-3 py-1 rounded-l-lg"
+                className="bg-white px-4 py-2 rounded-l-lg hover:bg-gray-300 transition-colors"
               >
                 -
               </button>
-              <input 
-                type="number" 
-                value={quantity} 
-                onChange={(e) => setQuantity(Number(e.target.value))} 
-                className="w-12 text-center border-t border-b border-gray-200 py-1" 
-              />
+              <div className="w-12 text-center border-t border-b border-gray-200 py-2">
+                {quantity}
+              </div>
               <button 
                 onClick={() => setQuantity(quantity + 1)} 
-                className="bg-gray-200 px-3 py-1 rounded-r-lg"
+                className="bg-white px-4 py-2 rounded-r-lg hover:bg-gray-300 transition-colors"
               >
                 +
               </button>
+            </div>
+            <div className="flex items-center space-x-4">
               <button 
-              onClick={handleAddToCart}
-              disabled={isLoading}
-              className="w-full bg-navy text-white py-2 px-4 rounded-lg hover:bg-blue-800 transition-colors duration-300"
-            >
-              {isLoading ? 'Adding to Cart...' : 'Add to Cart'}
-            </button>
+                onClick={handleAddToCart}
+                disabled={isLoading}
+                className="flex-1 bg-navy text-white py-2 px-4 rounded-lg hover:bg-blue-800 transition-colors duration-300"
+              >
+                {isLoading ? 'Adding to Cart...' : 'Add to Cart'}
+              </button>
               <button 
                 onClick={handleAddToWishlist}
                 disabled={isWishlistLoading}
-                className="ml-4 text-navy hover:scale-110 transition-transform"
+                className="text-navy hover:scale-110 transition-transform"
               >
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
-                  className={`h-6 w-6 ${isWishlistLoading ? 'animate-pulse' : ''}`} 
+                  className={`h-8 w-8 ${isWishlistLoading ? 'animate-pulse' : ''}`} 
                   fill="none" 
                   viewBox="0 0 24 24" 
                   stroke="currentColor"
+                  strokeWidth={2}
                 >
                   <path 
                     strokeLinecap="round" 
                     strokeLinejoin="round" 
-                    strokeWidth={2} 
                     d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
                   />
                 </svg>
@@ -296,8 +393,8 @@ const KurtaDetails = () => {
           </div>
         </div>
       </div>
-{/* Success Modal */}
-{showModal && (
+      {/* Success Modal */}
+      {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <div className="flex items-center mb-4">

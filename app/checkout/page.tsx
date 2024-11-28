@@ -13,20 +13,33 @@ interface CartItem {
 }
 
 interface KurtaDetail {
-  description?: string;
-  quantity?: number;
   sleeve_length?: string;
   color?: string;
   hemline?: string;
   neckline?: string;
   print?: string;
   sleeve_style?: string;
+  fabric?: string;
+}
+
+interface Measurements {
+  height?: number | null;
+  shoulder_width?: number | null;
+  arm_length?: number | null;
+  neck?: number | null;
+  wrist?: number | null;
+  chest?: number | null;
+  waist?: number | null;
+  hip?: number | null;
+  thigh?: number | null;
+  ankle?: number | null;
 }
 
 const CheckoutPage = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [kurtaDetails, setKurtaDetails] = useState<KurtaDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [totalOrderAmount, setTotalOrderAmount] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,6 +55,10 @@ const CheckoutPage = () => {
           
           setCartItems(cartData.cartItems);
           setKurtaDetails(kurtaData.kurtaDetails || []);
+          
+          const total = cartData.cartItems.reduce((sum: number, item: CartItem) => 
+            sum + (item.price * item.quantity), 0);
+          setTotalOrderAmount(total);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -54,100 +71,167 @@ const CheckoutPage = () => {
   }, []);
 
   const loadImage = async (url: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';  // Enable CORS
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL('image/jpeg'));
-      };
-      img.onerror = () => reject(new Error('Failed to load image'));
-      img.src = url;
-    });
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error('Error loading image:', error);
+      throw error;
+    }
   };
 
   const generatePDF = async () => {
     try {
       const doc = new jsPDF();
-      let yPosition = 20;
-      let totalOrderAmount = 0;
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
 
-      // Add title
-      doc.setFontSize(24);
-      doc.text('Order Details', 105, yPosition, { align: 'center' });
-      yPosition += 30;
+      let backgroundImage;
+      try {
+        backgroundImage = await loadImage('/ORDER.png');
+      } catch (error) {
+        console.error('Error loading background image:', error);
+      }
 
-      // Process each cart item
+      if (backgroundImage) {
+        doc.addImage(backgroundImage, 'PNG', 0, 0, pageWidth, pageHeight);
+      }
+      const orderId = `ORD-${Date.now()}`;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(32);
+      doc.setTextColor(0, 0, 102);
+      doc.text(orderId, pageWidth / 2, pageHeight / 2, { align: 'center' });
+
       for (let i = 0; i < cartItems.length; i++) {
         const item = cartItems[i];
         const details = kurtaDetails[i] || {};
 
-        // Add Kurta number header
-        doc.setFontSize(20);
-        doc.text(`KURTA ${i + 1}`, 20, yPosition);
-        yPosition += 20;
+        doc.addPage();
+        if (backgroundImage) {
+          doc.addImage(backgroundImage, 'PNG', 0, 0, pageWidth, pageHeight);
+        }
+        let yPosition = 20;
 
-        // Add image
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(20);
+        yPosition += 30;
+
         try {
           const imageData = await loadImage(item.imageUrl);
-          doc.addImage(imageData, 'JPEG', 20, yPosition, 50, 60);
-          yPosition += 70;
+          const imgWidth = 80;
+          const imgHeight = 96;
+          const xPosition = (pageWidth - imgWidth) / 2;
+          doc.addImage(imageData, 'JPEG', xPosition, yPosition, imgWidth, imgHeight);
+          yPosition += imgHeight + 20;
         } catch (error) {
-          console.error('Error loading image:', error);
+          console.error('Error adding image to PDF:', error);
+          yPosition += 20;
         }
 
-        // Add prompt
-        doc.setFontSize(12);
-        doc.text('PROMPT:', 20, yPosition);
-        yPosition += 10;
-        const promptLines = doc.splitTextToSize(item.description, 170);
-        doc.text(promptLines, 20, yPosition);
-        yPosition += (promptLines.length * 7) + 10;
-
-        // Add kurta details
         doc.setFontSize(14);
-        doc.text('KURTA DETAILS:', 20, yPosition);
+        doc.setTextColor(0, 0, 102)
+        doc.setFont('helvetica', 'bold');
+
+        doc.text('DESCRIPTION:', pageWidth / 2, yPosition, { align: 'center' });
+        yPosition += 8;
+        doc.setTextColor(0, 0, 0)
+        doc.setFont('helvetica', 'normal');
+
+        const promptLines = doc.splitTextToSize(item.description, 170);
+        doc.text(promptLines, pageWidth / 2, yPosition, { align: 'center' });
+        yPosition += (promptLines.length * 7) + 10;
+        doc.setTextColor(0, 0, 102) 
+        doc.setFont('helvetica', 'bold');
+
+        doc.text('KURTA DETAILS:', pageWidth / 2, yPosition, { align: 'center' });
         yPosition += 10;
 
-        doc.setFontSize(12);
         const detailsText = [
           `Sleeve Length: ${details.sleeve_length || 'N/A'}`,
           `Color: ${details.color || 'N/A'}`,
           `Hemline: ${details.hemline || 'N/A'}`,
           `Neckline: ${details.neckline || 'N/A'}`,
           `Print/Pattern: ${details.print || 'N/A'}`,
-          `Sleeve Style: ${details.sleeve_style || 'N/A'}`
+          `Sleeve Style: ${details.sleeve_style || 'N/A'}`,
+          `Fabric: ${details.fabric || 'N/A'}`
         ];
+        doc.setTextColor(0, 0, 0)
+        doc.setFont('helvetica', 'normal');
 
         detailsText.forEach(text => {
-          doc.text(text, 20, yPosition);
+          doc.text(text, pageWidth / 2, yPosition, { align: 'center' });
           yPosition += 8;
         });
-
-        // Add price
-        doc.setFontSize(14);
-        doc.text(`PRICE: ₹${item.price}`, 20, yPosition);
-        yPosition += 20;
-
-        totalOrderAmount += item.price * (item.quantity || 1);
-
-        // Add a page break if there's not enough space for the next item
-        if (yPosition > 250 && i < cartItems.length - 1) {
-          doc.addPage();
-          yPosition = 20;
-        }
+        yPosition += 5;
+        const priceString = `PRICE: Rs. ${item.price.toLocaleString('en-IN')}`;
+        doc.setTextColor(0, 0, 102)
+        doc.setFont('helvetica', 'bold');
+        doc.text(priceString, pageWidth / 2, yPosition, { align: 'center' });
       }
 
-      // Add total amount at the end
+      doc.addPage();
+      if (backgroundImage) {
+        doc.addImage(backgroundImage, 'PNG', 0, 0, pageWidth, pageHeight);
+      }
+      let yPosition = 50;
       doc.setFontSize(16);
-      doc.text(`Total Amount: ₹${totalOrderAmount.toFixed(2)}`, 20, yPosition);
+      doc.setTextColor(0, 0, 102)
+      doc.setFont('helvetica', 'bold');
+      doc.text('MEASUREMENTS', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 30;
 
-      // Save the PDF
-      doc.save('order_details.pdf');
+      try {
+        const measurementsResponse = await fetch('/api/saveMeasurements', {
+          method: 'GET',
+          credentials: 'include',
+        });
+
+        if (measurementsResponse.ok) {
+          const measurements = await measurementsResponse.json();
+          
+          const measurementDetails = [
+            `Height: ${measurements?.height ?? 'N/A'} cm`,
+            `Shoulder Width: ${measurements?.shoulder_width ?? 'N/A'} cm`,
+            `Arm Length: ${measurements?.arm_length ?? 'N/A'} cm`,
+            `Neck: ${measurements?.neck ?? 'N/A'} cm`,
+            `Wrist: ${measurements?.wrist ?? 'N/A'} cm`,
+            `Chest: ${measurements?.chest ?? 'N/A'} cm`,
+            `Waist: ${measurements?.waist ?? 'N/A'} cm`,
+            `Hip: ${measurements?.hip ?? 'N/A'} cm`,
+            `Thigh: ${measurements?.thigh ?? 'N/A'} cm`,
+            `Ankle: ${measurements?.ankle ?? 'N/A'} cm`
+          ];
+          doc.setTextColor(0, 0, 0)
+          doc.setFont('helvetica', 'normal');
+
+          measurementDetails.forEach(text => {
+            doc.text(text, pageWidth / 2, yPosition, { align: 'center' });
+            yPosition += 10;
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching measurements:', error);
+        doc.text('Measurements not available', pageWidth / 2, yPosition, { align: 'center' });
+      }
+
+      yPosition += 40;
+      const tax = totalOrderAmount * 0.18;
+      const totalWithTax = totalOrderAmount + tax;
+
+      doc.setFontSize(18);
+      doc.text(`Subtotal: Rs. ${totalOrderAmount.toLocaleString('en-IN')}`, 20, yPosition);
+      yPosition += 10;
+      doc.text(`Tax (18%): Rs. ${tax.toLocaleString('en-IN')}`, 20, yPosition);
+      yPosition += 10;
+      doc.text(`Total Amount (inc. tax): Rs. ${totalWithTax.toLocaleString('en-IN')}`, 20, yPosition);
+
+      doc.save(`order_${orderId}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Failed to generate PDF. Please try again.');

@@ -75,9 +75,6 @@ const Recommendation = () => {
           seed: extractedSeeds[index]
         }));
         
-        // Save the recommendations to MySQL
-        await saveRecommendations(newRecommendations);
-        
         setRecommendations(newRecommendations);
         console.log('Generated images for prompts:', newRecommendations);
       } else {
@@ -87,24 +84,6 @@ const Recommendation = () => {
       console.error('Error generating images:', error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const saveRecommendations = async (recommendations: {prompt: string, imageUrl: string, seed: number}[]) => {
-    try {
-      const response = await fetch('/api/saveRecommendations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ recommendations }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save recommendations');
-      }
-    } catch (error) {
-      console.error('Error saving recommendations:', error);
     }
   };
 
@@ -146,7 +125,7 @@ const Recommendation = () => {
         .sort(() => 0.5 - Math.random())
         .slice(0, numAdditionalAttrs);
 
-      const selectedAttributes = [colorAttribute, ...selectedOtherAttrs].filter(Boolean);
+      const selectedAttributes = [colorAttribute, ...selectedOtherAttrs].filter((attr): attr is { value: string, type: string } => attr !== undefined);
 
       return selectedAttributes
         .map(attr => {

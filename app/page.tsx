@@ -6,7 +6,6 @@ import { useCookies } from 'react-cookie';
 
 const HomePage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState(null); // Null by default to check if username is fetched
   const [cookies] = useCookies(['token']);
 
   // Define refs for animated elements
@@ -14,29 +13,8 @@ const HomePage = () => {
 
   // Check login status based on token presence
   useEffect(() => {
-    if (cookies.token) {
-      setIsLoggedIn(true);
-      // Fetch user data based on token
-      const fetchUser = async () => {
-        try {
-          const response = await fetch('/api/profile');
-          const data = await response.json();
-          if (data.userProfile) {
-            setUsername(data.userProfile.full_name); // Set the username if fetched successfully
-          } else {
-            setUsername(null); // Handle the case where username cannot be fetched
-          }
-        } catch (error) {
-          console.error('Failed to fetch user:', error);
-          setUsername(null); // Set username to null on error
-        }
-      };
-
-      fetchUser();
-    } else {
-      setIsLoggedIn(false);
-      setUsername(null); // Ensure username is null if the token is not present
-    }
+    console.log('Cookie value:', cookies.token); // Debug log
+    setIsLoggedIn(!!cookies.token);
   }, [cookies.token]);
 
   // Function to add ref to the array
@@ -78,8 +56,7 @@ const HomePage = () => {
     <div>
       <div className="min-h-screen bg-beige">
         <div className="mr-[40%] ml-[2%]">
-          {/* Show the appropriate navbar based on the login status and fetched username */}
-          {isLoggedIn && username ? <NavBar fontColor="text-blue" /> : <NavBarHome fontColor="text-blue" />}
+          {isLoggedIn ? <NavBar fontColor="text-blue" /> : <NavBarHome fontColor="text-blue" />}
         </div>
         <div
           className="absolute right-0 top-0 bg-navy p-8 h-[70%] w-[32%] bg-cover bg-center"
@@ -151,10 +128,25 @@ const HomePage = () => {
           </div>
           <div className="flex flex-col items-center mx-4">
             <img src="kurta-3.jpg" alt="Image 3" className="h-[78%] w-64 object-cover" />
-            <p className="mt-4 text-center text-navy text-medium">"beige color kurta with embroidery"</p>
+            <p className="mt-4 text-center text-navy text-medium">"red in color, floral pattern, boat neck"</p>
           </div>
         </div>
       </div>
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fadeInUp {
+          animation: fadeInUp 0.7s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 };

@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
     - Neckline (e.g., round, V-neck, mandarin)
     - Print/Pattern (e.g., embellished,solid, floral, geometric)
     - Sleeve Style (e.g., regular, bell, fitted, ruffles)
+    - Price (Any number between 1000 - 3000) 
     
     Format the response as key-value pairs, one per line.`;
 
@@ -65,6 +66,7 @@ function parseAttributesFromResponse(response: string): {
   neckline: string;
   print: string;
   sleeveStyle: string;
+  price: string;
 } {
   // Initialize default values
   const attributes = {
@@ -73,7 +75,8 @@ function parseAttributesFromResponse(response: string): {
     hemline: '',
     neckline: '',
     print: '',
-    sleeveStyle: ''
+    sleeveStyle: '',
+    price: ''
   };
 
   // Split response into lines and extract attributes
@@ -94,6 +97,8 @@ function parseAttributesFromResponse(response: string): {
       attributes.print = value;
     } else if (key.toLowerCase().includes('sleeve style')) {
       attributes.sleeveStyle = value;
+    } else if (key.toLowerCase().includes('price')) {
+      attributes.price = value; 
     }
   }
 
